@@ -123,11 +123,11 @@ body {
 }
 
 @layer components {
-  .panel { @apply rounded-xl border border-white/10 bg-[#0d1826] shadow-[0_18px_60px_rgba(0,0,0,.18)]; }
+  .panel { @apply rounded-md border border-white/10 bg-[#0d1826]; }
   .panel-header { @apply flex min-h-16 items-center justify-between gap-4 border-b border-white/8 px-5 py-4 sm:px-6; }
   .panel-header h2 { @apply mt-0.5 text-lg font-semibold tracking-tight; }
   .eyebrow { @apply text-[10px] font-semibold uppercase tracking-[.16em] text-slate-500; }
-  .metric-card { @apply rounded-lg border border-white/8 bg-[#0d1826] p-4; }
+  .metric-card { @apply rounded-md border border-white/8 bg-[#0d1826] p-4; }
   .herd-grid { @apply grid grid-cols-6 gap-3 sm:grid-cols-10 sm:gap-4; }
   .agent-node { @apply aspect-square w-full max-w-12 justify-self-center rounded-lg border border-white/25 font-mono text-[11px] font-bold shadow-[0_0_0_3px_rgba(255,255,255,.025)] transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300; animation: node-in .35s ease both; }
   .status-badge { @apply inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-bold tracking-[.08em]; }
@@ -152,7 +152,34 @@ body {
   .intent-table tbody tr { @apply transition-colors hover:bg-white/3; }
   .timeline-row { @apply relative flex gap-4 border-l border-white/10 pb-7 pl-5 last:border-transparent last:pb-0; }
   .timeline-dot { @apply absolute -left-[5px] top-1 size-2.5 rounded-full ring-4 ring-[#0d1826]; }
+
+  .startup-container { @apply mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12; }
+  .startup-nav { @apply sticky top-0 z-40 border-b border-[#cfd3cb] bg-[#f4f3ee]/95 backdrop-blur-xl; }
+  .startup-nav a { @apply transition-colors hover:text-[#ff5938]; }
+  .startup-button { @apply inline-flex min-h-11 items-center justify-center gap-2 px-5 text-[13px] font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff5938]; }
+  .startup-button svg { @apply size-4; }
+  .startup-button-dark { @apply bg-[#111714] text-white hover:bg-[#ff5938] hover:text-[#111714]; }
+  .startup-button-accent { @apply bg-[#ff5938] text-[#111714] hover:bg-[#111714] hover:text-white; }
+  .startup-button-light { @apply border border-[#aeb5ad] bg-transparent text-[#111714] hover:border-[#111714]; }
+  .startup-kicker { @apply inline-flex items-center gap-2 border-y border-[#c6cbc3] py-2 text-[11px] font-semibold uppercase tracking-[.14em] text-[#5c665f]; }
+  .startup-section { @apply py-24 sm:py-32; }
+  .section-index { @apply inline-flex h-10 w-14 items-center justify-center border border-[#aeb5ad] font-mono text-xs text-[#68716b]; }
+  .product-preview { @apply relative w-full overflow-hidden border border-[#9da59d] bg-[#f9f9f6] shadow-[12px_12px_0_#111714] transition-transform duration-300 hover:-translate-y-1; }
+  .product-preview::before { content: ''; @apply absolute -right-24 -top-24 size-72 rounded-full bg-[#ff5938]/10 blur-3xl; }
+  .preview-top { @apply relative flex items-center justify-between border-b border-[#c9cec6] bg-white px-5 py-3 font-mono text-[10px] uppercase tracking-[.1em] text-[#69736d]; }
+  .preview-label { @apply text-[10px] font-semibold uppercase tracking-[.13em] text-[#757e78]; }
+  .preview-status { @apply border border-[#ff5938] bg-[#ff5938]/10 px-3 py-1.5 font-mono text-xs font-bold text-[#c53e25]; }
+  .diagram-label { @apply text-[10px] font-semibold uppercase tracking-[.14em] text-[#727b75]; }
+  .research-row { @apply flex min-h-28 items-center justify-between gap-8 py-6 transition-colors hover:text-[#d94127]; }
+  .startup-text-link { @apply border-b border-[#111714] pb-0.5 font-semibold text-[#111714] hover:border-[#ff5938] hover:text-[#ff5938]; }
+  .footer-label { @apply text-[10px] font-semibold uppercase tracking-[.16em] text-white/35; }
+  .footer-links { @apply mt-4 flex flex-col items-start gap-3 text-sm text-white/65; }
+  .footer-links a, .footer-links button { @apply transition-colors hover:text-[#ff8067]; }
 }
+
+.startup-site { font-family: var(--font-geist-sans), "Noto Sans TC", "PingFang TC", sans-serif; }
+.startup-site ::selection { background: #ff5938; color: #111714; }
+.startup-site a { text-decoration: none; }
 
 @keyframes node-in { from { opacity: .25; transform: scale(.86); } to { opacity: 1; transform: scale(1); } }
 
