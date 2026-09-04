@@ -49,7 +49,8 @@ The product UI is backed by a Cloudflare Worker-compatible API and D1 persistenc
 
 - `POST /api/runs` validates inputs, executes the deterministic fleet-risk engine, creates 30 intent commitments, and stores the initial audit chain.
 - `GET /api/runs/:id` reads the durable run and current release state.
-- `POST /api/runs/:id/release` requires an idempotency key and stages up to ten intents with human authorization recorded.
+- `POST /api/runs/:id/release` requires an idempotency key, explicit confirmation, and a written authorization reason before staging up to ten intents.
+- The WebMCP release tool can only prepare and open the visible review surface; it cannot bypass the human authorization step.
 - `POST /api/runs/:id/replay` probes an already-registered nonce and records the blocked attempt.
 - `GET /api/runs/:id/evidence` returns commitments, linked audit events, chain verification, and a hash of the complete evidence package.
 - `GET /api/health` checks runtime and D1 connectivity.
