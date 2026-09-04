@@ -5,18 +5,23 @@ import {
   Activity,
   ArrowRight,
   Banknote,
+  Bell,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   CircleAlert,
   Building2,
   ClipboardCheck,
   Cpu,
   Download,
+  Database,
   FileCheck2,
   Fingerprint,
   Gauge,
+  HelpCircle,
   History,
+  LayoutGrid,
   LockKeyhole,
   Network,
   Pause,
@@ -509,133 +514,187 @@ export default function Home() {
     );
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-white/8 bg-[#09111d]/92 backdrop-blur-xl">
-        <div className="mx-auto flex min-h-16 max-w-[1500px] items-center justify-between gap-4 px-4 lg:px-8">
+    <main className="enterprise-shell bg-background text-foreground">
+      <header className="enterprise-topbar">
+        <div className="enterprise-brand-cell">
           <button
             onClick={() => setSurface('site')}
-            className="flex items-center gap-3 text-left"
+            className="flex items-center gap-2.5 text-left"
           >
             <BrandMark />
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold tracking-tight">HerdBrake</span>
-                <span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">
-                  TAIWAN LAB
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500">
-                Agentic Payment Assurance
+              <p className="text-sm font-semibold tracking-tight">HerdBrake</p>
+              <p className="text-[9px] font-medium uppercase tracking-[.14em] text-slate-500">
+                Treasury Assurance
               </p>
             </div>
           </button>
+        </div>
+        <div className="enterprise-org-cell">
+          <Building2 className="size-3.5 text-slate-500" />
+          <span>Taiwan Enterprise Pilot</span>
+          <span className="text-slate-600">/</span>
+          <span className="text-slate-400">Global Treasury</span>
+          <ChevronDown className="ml-1 size-3 text-slate-600" />
+        </div>
+        <div className="enterprise-utility-cell">
+          <span className="environment-pill">
+            <span className="size-1.5 rounded-full bg-amber-300" />
+            Simulation
+          </span>
+          <span className="hidden font-mono text-[10px] text-slate-500 sm:inline">
+            CST · TAIPEI
+          </span>
+          <button
+            onClick={() => setTab('evidence')}
+            aria-label="開啟稽核與說明"
+            title="Audit & evidence"
+            className="utility-icon"
+          >
+            <HelpCircle />
+          </button>
+          <button
+            onClick={() => setTab('command')}
+            aria-label="開啟風險警示"
+            title="Risk alerts"
+            className="utility-icon relative"
+          >
+            <Bell />
+            <span className="absolute right-1 top-1 size-1.5 rounded-full bg-rose-400" />
+          </button>
+          <span className="enterprise-avatar" aria-label="使用者 AgentJE">
+            AJ
+          </span>
+        </div>
+      </header>
+
+      <div className="enterprise-body">
+        <EnterpriseSidebar
+          tab={tab}
+          onTab={setTab}
+          risk={risk}
+          backendState={backendState}
+          activeRunId={activeRunId}
+          onExit={() => setSurface('site')}
+        />
+
+        <section className="enterprise-workspace">
+          <div className="workspace-contextbar">
+            <div className="min-w-0">
+              <p className="workspace-breadcrumb">
+                Treasury Operations <ChevronRight />{' '}
+                {tabs.find((item) => item.id === tab)?.label}
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <h1>{scenario.shortName}</h1>
+                <span
+                  className={`workspace-risk ${risk.state === 'CRITICAL' ? 'workspace-risk-critical' : ''}`}
+                >
+                  {risk.state}
+                </span>
+              </div>
+            </div>
+            <div className="hidden items-center divide-x divide-white/8 text-[10px] xl:flex">
+              <ContextDatum label="POLICY SET" value="TW-TREASURY / 2.4.1" />
+              <ContextDatum
+                label="ACTIVE RUN"
+                value={activeRunId ? activeRunId.slice(0, 13) : 'NOT STARTED'}
+                mono
+              />
+              <ContextDatum
+                label="INTENTS"
+                value={`${risk.intents.length} CANONICAL`}
+              />
+            </div>
+          </div>
+
           <nav
-            className="hidden items-center gap-1 lg:flex"
+            className="flex overflow-x-auto border-b border-white/7 px-3 lg:hidden"
             aria-label="產品功能"
           >
-            {tabs.map(({ id, label, icon: Icon }) => (
+            {tabs.map(({ id, label }) => (
               <button
                 key={id}
                 onClick={() => setTab(id)}
-                className={`nav-tab ${tab === id ? 'nav-tab-active' : ''}`}
+                className={`mobile-tab ${tab === id ? 'mobile-tab-active' : ''}`}
               >
-                <Icon />
                 {label}
               </button>
             ))}
           </nav>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <span className="hidden items-center gap-2 sm:flex">
+
+          <div className="enterprise-content">
+            <div className="enterprise-notice">
+              <span className="flex min-w-0 items-center gap-2">
+                <CheckCircle2 className="size-3.5 shrink-0 text-cyan-300" />
+                <span className="truncate">{notice}</span>
+              </span>
+              <button
+                onClick={() => setNotice('系統就緒：所有金流維持在模擬環境。')}
+                aria-label="關閉通知"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+            {tab === 'command' && (
+              <CommandCenter
+                risk={risk}
+                scenario={scenario}
+                running={running}
+                onRun={() => runScenario()}
+                onOpenBreaker={() => {
+                  setAuthorizationConfirmed(false);
+                  setBreakerOpen(true);
+                }}
+                onNavigate={setTab}
+              />
+            )}
+            {tab === 'lab' && (
+              <ScenarioLab
+                selected={scenarioId}
+                severity={severity}
+                floor={liquidityFloor}
+                running={running}
+                onSelect={setScenarioId}
+                onSeverity={setSeverity}
+                onFloor={setLiquidityFloor}
+                onRun={() => runScenario()}
+              />
+            )}
+            {tab === 'ledger' && (
+              <IntentLedger intents={risk.intents} commitments={commitments} />
+            )}
+            {tab === 'evidence' && (
+              <EvidencePanel
+                audit={audit}
+                replayBlocked={replayBlocked}
+                onReplay={blockReplay}
+                onDownload={downloadEvidence}
+                risk={risk}
+                auditHead={auditHead}
+                commitmentCount={Object.keys(commitments).length}
+              />
+            )}
+          </div>
+
+          <footer className="enterprise-statusbar">
+            <span>HerdBrake Control Plane</span>
+            <span className="hidden sm:inline">
+              Simulation only · No custody · Human approval required
+            </span>
+            <span className="ml-auto flex items-center gap-1.5">
               <span
                 className={`size-1.5 rounded-full ${backendState === 'error' ? 'bg-rose-400' : backendState === 'saving' ? 'animate-pulse bg-amber-300' : 'bg-emerald-400'}`}
               />
               {backendState === 'error'
-                ? 'Backend error'
+                ? 'Service degraded'
                 : backendState === 'saving'
                   ? 'Persisting'
-                  : 'D1 connected'}
+                  : 'All systems operational'}
             </span>
-            <span className="rounded-md border border-white/10 px-2 py-1 font-mono">
-              {activeRunId ? activeRunId.slice(0, 9) : 'TW-01'}
-            </span>
-          </div>
-        </div>
-        <nav
-          className="flex overflow-x-auto border-t border-white/6 px-3 lg:hidden"
-          aria-label="產品功能"
-        >
-          {tabs.map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setTab(id)}
-              className={`mobile-tab ${tab === id ? 'mobile-tab-active' : ''}`}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-      </header>
-
-      <div className="mx-auto max-w-[1500px] px-4 py-5 lg:px-8 lg:py-7">
-        <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-cyan-300/15 bg-cyan-300/6 px-3.5 py-2.5 text-xs text-cyan-100">
-          <span className="flex items-center gap-2">
-            <CheckCircle2 className="size-4 shrink-0 text-cyan-300" />
-            {notice}
-          </span>
-          <button
-            onClick={() => setNotice('系統就緒：所有金流維持在模擬環境。')}
-            aria-label="關閉通知"
-          >
-            <X className="size-3.5" />
-          </button>
-        </div>
-        {tab === 'command' && (
-          <CommandCenter
-            risk={risk}
-            scenario={scenario}
-            running={running}
-            onRun={() => runScenario()}
-            onOpenBreaker={() => {
-              setAuthorizationConfirmed(false);
-              setBreakerOpen(true);
-            }}
-            onNavigate={setTab}
-          />
-        )}
-        {tab === 'lab' && (
-          <ScenarioLab
-            selected={scenarioId}
-            severity={severity}
-            floor={liquidityFloor}
-            running={running}
-            onSelect={setScenarioId}
-            onSeverity={setSeverity}
-            onFloor={setLiquidityFloor}
-            onRun={() => runScenario()}
-          />
-        )}
-        {tab === 'ledger' && (
-          <IntentLedger intents={risk.intents} commitments={commitments} />
-        )}
-        {tab === 'evidence' && (
-          <EvidencePanel
-            audit={audit}
-            replayBlocked={replayBlocked}
-            onReplay={blockReplay}
-            onDownload={downloadEvidence}
-            risk={risk}
-            auditHead={auditHead}
-            commitmentCount={Object.keys(commitments).length}
-          />
-        )}
+          </footer>
+        </section>
       </div>
-      <footer className="mx-auto flex max-w-[1500px] flex-col gap-2 border-t border-white/8 px-4 py-5 text-[11px] text-slate-500 sm:flex-row sm:justify-between lg:px-8">
-        <span>HerdBrake Taiwan · Hackathon demonstrator</span>
-        <span>
-          Simulation only · No custody · No autonomous execution · Human
-          approval required
-        </span>
-      </footer>
       {breakerOpen && (
         <BreakerDialog
           risk={risk}
@@ -653,6 +712,139 @@ export default function Home() {
         />
       )}
     </main>
+  );
+}
+
+function EnterpriseSidebar({
+  tab,
+  onTab,
+  risk,
+  backendState,
+  activeRunId,
+  onExit,
+}: {
+  tab: Tab;
+  onTab: (tab: Tab) => void;
+  risk: ReturnType<typeof runRiskEngine>;
+  backendState: 'ready' | 'saving' | 'error';
+  activeRunId: string | null;
+  onExit: () => void;
+}) {
+  return (
+    <aside className="enterprise-sidebar">
+      <div className="px-3 pb-3 pt-5">
+        <p className="sidebar-label">Control plane</p>
+        <nav className="mt-2 space-y-0.5" aria-label="工作站模組">
+          {tabs.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => onTab(id)}
+              className={`enterprise-nav-item ${tab === id ? 'enterprise-nav-item-active' : ''}`}
+            >
+              <Icon />
+              <span>{label}</span>
+              {id === 'command' && risk.state === 'CRITICAL' && (
+                <span className="ml-auto size-1.5 rounded-full bg-rose-400" />
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+      <div className="sidebar-divider" />
+      <div className="px-3 py-4">
+        <p className="sidebar-label">Portfolio</p>
+        <div className="portfolio-card">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-medium text-slate-300">
+              Taiwan Treasury
+            </span>
+            <span className="font-mono text-[9px] text-slate-600">TW-01</span>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <SidebarDatum label="Entities" value="5" />
+            <SidebarDatum label="Agents" value="30" />
+            <SidebarDatum
+              label="Held"
+              value={String(
+                risk.intents.filter((item) => item.status === 'HELD').length,
+              )}
+              danger
+            />
+            <SidebarDatum label="Policy" value="2.4.1" />
+          </div>
+        </div>
+      </div>
+      <div className="mt-auto px-3 pb-4">
+        <div className="sidebar-system">
+          <div className="flex items-center gap-2">
+            <Database className="size-3.5 text-emerald-300" />
+            <span>D1 assurance store</span>
+          </div>
+          <p className="mt-2 font-mono text-[9px] text-slate-600">
+            {activeRunId ? activeRunId.slice(0, 18) : 'Awaiting first run'}
+          </p>
+          <p className="mt-2 flex items-center gap-2 text-[10px] text-slate-500">
+            <span
+              className={`size-1.5 rounded-full ${backendState === 'error' ? 'bg-rose-400' : backendState === 'saving' ? 'bg-amber-300' : 'bg-emerald-400'}`}
+            />
+            {backendState === 'error'
+              ? 'Connection error'
+              : backendState === 'saving'
+                ? 'Writing evidence'
+                : 'Verified connection'}
+          </p>
+        </div>
+        <button onClick={onExit} className="enterprise-exit">
+          <LayoutGrid />
+          Return to product site
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+function ContextDatum({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="px-5 first:pl-0 last:pr-0">
+      <p className="text-[8px] font-semibold uppercase tracking-[.14em] text-slate-600">
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-[10px] text-slate-300 ${mono ? 'font-mono' : ''}`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+function SidebarDatum({
+  label,
+  value,
+  danger = false,
+}: {
+  label: string;
+  value: string;
+  danger?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-[9px] uppercase tracking-wider text-slate-600">
+        {label}
+      </p>
+      <p
+        className={`mt-1 font-mono text-xs ${danger ? 'text-rose-300' : 'text-slate-300'}`}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
 
@@ -1392,12 +1584,12 @@ function CommandCenter({
           <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[.16em] text-cyan-300">
             <Activity className="size-3.5" /> Live decision surface
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-            {scenario.name}
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            Pre-execution risk overview
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-400">
-            30 個財務代理各自合規，但同步決策可能擊穿集團流動性；HerdBrake
-            在付款簽署前攔截。
+            {scenario.name} · 30
+            個財務代理各自合規，但同步決策可能擊穿集團流動性。
           </p>
         </div>
         <Button
