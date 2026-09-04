@@ -45,6 +45,11 @@ export default function Home() {
   const [releaseCount, setReleaseCount] = useState(5);
   const [prioritizeCritical, setPrioritizeCritical] = useState(true);
   const [releasedIds, setReleasedIds] = useState<string[]>([]);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [remoteRisk, setRemoteRisk] = useState<ReturnType<typeof runRiskEngine> | null>(null);
+  const [commitments, setCommitments] = useState<Record<string, string>>({});
+  const [auditHead, setAuditHead] = useState<string | null>(null);
+  const [backendState, setBackendState] = useState<'ready' | 'saving' | 'error'>('ready');
   const [replayBlocked, setReplayBlocked] = useState(false);
   const [notice, setNotice] = useState('壓力測試完成：付款批次已在簽署前暫停。');
   const [audit, setAudit] = useState<AuditEvent[]>([
@@ -54,28 +59,55 @@ export default function Home() {
   ]);
 
   const scenario = scenarios.find((item) => item.id === scenarioId) ?? scenarios[0];
-  const risk = useMemo(() => runRiskEngine({ scenarioId, severity, liquidityFloor, releasedIds }), [scenarioId, severity, liquidityFloor, releasedIds]);
+  const localRisk = useMemo(() => runRiskEngine({ scenarioId, severity, liquidityFloor, releasedIds }), [scenarioId, severity, liquidityFloor, releasedIds]);
+  const risk = remoteRisk ?? localRisk;
 
-  const runScenario = useCallback((nextId = scenarioId, nextSeverity = severity) => {
-    setRunning(true); setScenarioId(nextId); setSeverity(nextSeverity); setReleasedIds([]); setReplayBlocked(false);
-    window.setTimeout(() => {
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch('/api/runs', { cache: 'no-store', signal: controller.signal }).then(async (response) => {
+      if (response.status === 204) return;
+      const latest = await response.json() as { runId?: string; scenarioId?: ScenarioId; severity?: number; risk?: ReturnType<typeof runRiskEngine>; commitments?: Record<string, string>; auditHead?: string | null };
+      if (response.ok && latest.runId && latest.risk) { setActiveRunId(latest.runId); setRemoteRisk(latest.risk); setCommitments(latest.commitments ?? {}); setAuditHead(latest.auditHead ?? null); if (latest.scenarioId) setScenarioId(latest.scenarioId); if (typeof latest.severity === 'number') setSeverity(latest.severity); }
+    }).catch((error: unknown) => { if (!(error instanceof DOMException && error.name === 'AbortError')) setBackendState('error'); });
+    return () => controller.abort();
+  }, []);
+
+  const createPersistentRun = useCallback(async (nextId: ScenarioId, nextSeverity: number) => {
+    const response = await fetch('/api/runs', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ scenarioId: nextId, severity: nextSeverity, liquidityFloor }) });
+    const payload = await response.json() as { runId?: string; risk?: ReturnType<typeof runRiskEngine>; commitments?: Record<string, string>; auditHead?: string | null; error?: string };
+    if (!response.ok || !payload.runId || !payload.risk) throw new Error(payload.error || 'Unable to persist stress run.');
+    setActiveRunId(payload.runId); setRemoteRisk(payload.risk); setCommitments(payload.commitments ?? {}); setAuditHead(payload.auditHead ?? null); return { runId: payload.runId, risk: payload.risk };
+  }, [liquidityFloor]);
+
+  const runScenario = useCallback(async (nextId = scenarioId, nextSeverity = severity) => {
+    setRunning(true); setBackendState('saving'); setScenarioId(nextId); setSeverity(nextSeverity); setReleasedIds([]); setRemoteRisk(null); setReplayBlocked(false);
+    try {
+      await createPersistentRun(nextId, nextSeverity);
       const nextScenario = scenarios.find((item) => item.id === nextId) ?? scenarios[0];
       setAudit([
         { time: now(), title: 'Shared breaker triggered', detail: 'Aggregate policy re-evaluated before signing', tone: 'danger' },
         { time: now(-1), title: '30 intents evaluated', detail: 'Individual PASS · aggregate decision HOLD', tone: 'neutral' },
         { time: now(-2), title: 'Scenario signal received', detail: nextScenario.commonSignal, tone: 'neutral' },
       ]);
-      setNotice(`${nextScenario.shortName}壓力測試完成：已重新計算 30 筆付款意圖。`); setRunning(false); setTab('command');
-    }, 520);
-  }, [scenarioId, severity]);
+      setNotice(`${nextScenario.shortName}壓力測試已寫入安全後端：30 筆付款意圖與稽核鏈建立完成。`); setBackendState('ready'); setTab('command');
+    } catch (error) { setBackendState('error'); setNotice(`後端測試未完成：${error instanceof Error ? error.message : 'unknown error'}`); }
+    finally { setRunning(false); }
+  }, [createPersistentRun, scenarioId, severity]);
 
-  const stageRelease = useCallback((count = releaseCount) => {
-    const held = risk.intents.filter((item) => item.status === 'HELD');
-    const chosen = prioritizeCritical ? selectSafeRelease(held, count) : held.slice(0, count).map((item) => item.id);
-    setReleasedIds((current) => Array.from(new Set([...current, ...chosen])));
-    setAudit((current) => [{ time: now(), title: `${chosen.length} intents staged for release`, detail: `${prioritizeCritical ? 'Critical suppliers first' : 'Original queue order'} · human authorization recorded`, tone: 'safe' }, ...current]);
-    setNotice(`已安全放行 ${chosen.length} 筆；其餘付款維持 HOLD，未觸碰真實資金。`); setBreakerOpen(false);
-  }, [prioritizeCritical, releaseCount, risk.intents]);
+  const stageRelease = useCallback(async (count = releaseCount) => {
+    setBackendState('saving');
+    try {
+      const persisted = activeRunId ? { runId: activeRunId } : await createPersistentRun(scenarioId, severity);
+      const response = await fetch(`/api/runs/${encodeURIComponent(persisted.runId)}/release`, { method: 'POST', headers: { 'content-type': 'application/json', 'idempotency-key': `release:${crypto.randomUUID()}` }, body: JSON.stringify({ count, prioritizeCritical }) });
+      const payload = await response.json() as { releasedIntentIds?: string[]; releasedCount?: number; error?: string };
+      if (!response.ok || !payload.releasedIntentIds) throw new Error(payload.error || 'Unable to authorize staged release.');
+      const refreshed = await fetch(`/api/runs/${encodeURIComponent(persisted.runId)}`, { cache: 'no-store' }); const run = await refreshed.json() as { risk?: ReturnType<typeof runRiskEngine>; commitments?: Record<string, string>; auditHead?: string | null; error?: string };
+      if (!refreshed.ok || !run.risk) throw new Error(run.error || 'Unable to refresh run state.');
+      setRemoteRisk(run.risk); setCommitments(run.commitments ?? {}); setAuditHead(run.auditHead ?? null); setReleasedIds(payload.releasedIntentIds);
+      setAudit((current) => [{ time: now(), title: `${payload.releasedCount ?? count} intents staged for release`, detail: `${prioritizeCritical ? 'Critical suppliers first' : 'Original queue order'} · idempotent authorization persisted`, tone: 'safe' }, ...current]);
+      setNotice(`已由後端安全放行 ${payload.releasedCount ?? count} 筆；其餘付款維持 HOLD。`); setBackendState('ready'); setBreakerOpen(false);
+    } catch (error) { setBackendState('error'); setNotice(`放行失敗，所有付款維持 HOLD：${error instanceof Error ? error.message : 'unknown error'}`); }
+  }, [activeRunId, createPersistentRun, prioritizeCritical, releaseCount, scenarioId, severity]);
 
   const runScenarioRef = useRef(runScenario);
   const stageReleaseRef = useRef(stageRelease);
@@ -88,36 +120,45 @@ export default function Home() {
     if (!context?.registerTool) return;
     const lifecycle = new AbortController();
     const tools = [
-      { name: 'run_herdbrake_stress_test', title: 'Run treasury stress test', description: 'Run a treasury-agent stress test and open the visible HerdBrake command center.', inputSchema: { type: 'object', additionalProperties: false, properties: { scenarioId: { type: 'string', enum: scenarios.map((s) => s.id) }, severity: { type: 'number', minimum: 0.1, maximum: 1 } }, required: ['scenarioId', 'severity'] }, execute: (input: unknown) => { const { scenarioId: id, severity: level } = validateStressInput(input); runScenarioRef.current(id, level); setSurface('console'); return { scenarioId: id, severity: level, status: 'running' }; } },
-      { name: 'stage_herdbrake_release', title: 'Stage safe payment release', description: 'Stage a human-authorized subset of held payment intents and update the visible ledger.', inputSchema: { type: 'object', additionalProperties: false, properties: { count: { type: 'integer', minimum: 1, maximum: 10 } }, required: ['count'] }, execute: (input: unknown) => { const count = validateReleaseInput(input); stageReleaseRef.current(count); setSurface('console'); return { stagedCount: count, authorization: 'human-required' }; } },
+      { name: 'run_herdbrake_stress_test', title: 'Run treasury stress test', description: 'Run and persist a treasury-agent stress test, then open the visible HerdBrake command center.', inputSchema: { type: 'object', additionalProperties: false, properties: { scenarioId: { type: 'string', enum: scenarios.map((s) => s.id) }, severity: { type: 'number', minimum: 0.1, maximum: 1 } }, required: ['scenarioId', 'severity'] }, execute: async (input: unknown) => { const { scenarioId: id, severity: level } = validateStressInput(input); setSurface('console'); await runScenarioRef.current(id, level); return { scenarioId: id, severity: level, status: 'persisted' }; } },
+      { name: 'stage_herdbrake_release', title: 'Stage safe payment release', description: 'Persist a human-authorized subset of held payment intents and update the visible ledger.', inputSchema: { type: 'object', additionalProperties: false, properties: { count: { type: 'integer', minimum: 1, maximum: 10 } }, required: ['count'] }, execute: async (input: unknown) => { const count = validateReleaseInput(input); setSurface('console'); await stageReleaseRef.current(count); return { stagedCount: count, authorization: 'human-required', persisted: true }; } },
       { name: 'get_herdbrake_risk_state', title: 'Read aggregate risk state', description: 'Read the current aggregate HerdBrake decision without changing it.', inputSchema: { type: 'object', additionalProperties: false, properties: {} }, annotations: { readOnlyHint: true }, execute: () => { const current = riskRef.current; return { state: current.state, directionalAgreement: current.directionalAgreement, projectedBuffer: current.projectedBuffer, reasonCode: current.reasonCode }; } },
     ];
     tools.forEach((tool) => { try { void Promise.resolve(context.registerTool(tool, { signal: lifecycle.signal })).catch(() => undefined); } catch { /* unsupported preview context */ } });
     return () => lifecycle.abort();
   }, []);
 
-  function blockReplay() {
+  async function blockReplay() {
     if (replayBlocked) return;
-    setReplayBlocked(true);
-    setAudit((current) => [{ time: now(), title: 'Replay attempt rejected', detail: 'Nonce 0xHB004204 already consumed · no duplicate execution', tone: 'safe' }, ...current]);
-    setNotice('重播攻擊已阻擋：nonce 已使用，付款批次未重複執行。');
+    setBackendState('saving');
+    try {
+      const persisted = activeRunId ? { runId: activeRunId } : await createPersistentRun(scenarioId, severity);
+      const response = await fetch(`/api/runs/${encodeURIComponent(persisted.runId)}/replay`, { method: 'POST' }); const payload = await response.json() as { blocked?: boolean; nonce?: string; error?: string };
+      if (!response.ok || !payload.blocked) throw new Error(payload.error || 'Replay probe did not complete.');
+      setReplayBlocked(true); setAuditHead((payload as { auditHead?: string }).auditHead ?? auditHead); setBackendState('ready');
+      setAudit((current) => [{ time: now(), title: 'Replay attempt rejected', detail: `${payload.nonce} already registered · no duplicate execution`, tone: 'safe' }, ...current]);
+      setNotice('重播攻擊已由後端阻擋並寫入稽核雜湊鏈。');
+    } catch (error) { setBackendState('error'); setNotice(`重播測試失敗：${error instanceof Error ? error.message : 'unknown error'}`); }
   }
 
-  function downloadEvidence() {
-    const evidence = { product: 'HerdBrake Taiwan', generatedAt: new Date().toISOString(), scenario, policy: { version: '2.4.1', liquidityFloor, decision: risk.state === 'CRITICAL' ? 'HOLD' : 'REVIEW' }, metrics: { directionalAgreement: risk.directionalAgreement, destinationConcentration: risk.destinationConcentration, projectedBuffer: risk.projectedBuffer, proposedOutflow: risk.proposedOutflow }, intents: risk.intents, audit };
-    const url = URL.createObjectURL(new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' }));
-    const link = document.createElement('a'); link.href = url; link.download = 'herdbrake-evidence-FX-042.json'; link.click(); URL.revokeObjectURL(url);
-    setNotice('稽核證據包已匯出，不含個資與模型思考內容。');
+  async function downloadEvidence() {
+    setBackendState('saving');
+    try {
+      const persisted = activeRunId ? { runId: activeRunId } : await createPersistentRun(scenarioId, severity);
+      const response = await fetch(`/api/runs/${encodeURIComponent(persisted.runId)}/evidence`, { cache: 'no-store' }); if (!response.ok) throw new Error('Unable to create evidence pack.');
+      const url = URL.createObjectURL(await response.blob()); const link = document.createElement('a'); link.href = url; link.download = `herdbrake-${persisted.runId}.json`; link.click(); URL.revokeObjectURL(url);
+      setBackendState('ready'); setNotice('後端證據包已匯出，包含 commitment、完整稽核鏈與驗證結果。');
+    } catch (error) { setBackendState('error'); setNotice(`證據匯出失敗：${error instanceof Error ? error.message : 'unknown error'}`); }
   }
 
-  if (surface === 'site') return <StartupSite onLaunch={() => setSurface('console')} />;
+  if (surface === 'site') return <StartupSite onLaunch={() => { setSurface('console'); if (!activeRunId) void runScenario(); }} />;
 
   return <main className="min-h-screen bg-background text-foreground">
     <header className="sticky top-0 z-30 border-b border-white/8 bg-[#09111d]/92 backdrop-blur-xl">
       <div className="mx-auto flex min-h-16 max-w-[1500px] items-center justify-between gap-4 px-4 lg:px-8">
         <button onClick={() => setSurface('site')} className="flex items-center gap-3 text-left"><BrandMark /><div><div className="flex items-center gap-2"><span className="font-semibold tracking-tight">HerdBrake</span><span className="rounded border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold text-slate-400">TAIWAN LAB</span></div><p className="text-[11px] text-slate-500">Agentic Payment Assurance</p></div></button>
         <nav className="hidden items-center gap-1 lg:flex" aria-label="產品功能">{tabs.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => setTab(id)} className={`nav-tab ${tab === id ? 'nav-tab-active' : ''}`}><Icon />{label}</button>)}</nav>
-        <div className="flex items-center gap-2 text-xs text-slate-400"><span className="hidden items-center gap-2 sm:flex"><span className="size-1.5 rounded-full bg-emerald-400" />Simulation</span><span className="rounded-md border border-white/10 px-2 py-1 font-mono">TW-01</span></div>
+        <div className="flex items-center gap-2 text-xs text-slate-400"><span className="hidden items-center gap-2 sm:flex"><span className={`size-1.5 rounded-full ${backendState === 'error' ? 'bg-rose-400' : backendState === 'saving' ? 'animate-pulse bg-amber-300' : 'bg-emerald-400'}`} />{backendState === 'error' ? 'Backend error' : backendState === 'saving' ? 'Persisting' : 'D1 connected'}</span><span className="rounded-md border border-white/10 px-2 py-1 font-mono">{activeRunId ? activeRunId.slice(0, 9) : 'TW-01'}</span></div>
       </div>
       <nav className="flex overflow-x-auto border-t border-white/6 px-3 lg:hidden" aria-label="產品功能">{tabs.map(({ id, label }) => <button key={id} onClick={() => setTab(id)} className={`mobile-tab ${tab === id ? 'mobile-tab-active' : ''}`}>{label}</button>)}</nav>
     </header>
@@ -126,8 +167,8 @@ export default function Home() {
       <div className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-cyan-300/15 bg-cyan-300/6 px-3.5 py-2.5 text-xs text-cyan-100"><span className="flex items-center gap-2"><CheckCircle2 className="size-4 shrink-0 text-cyan-300" />{notice}</span><button onClick={() => setNotice('系統就緒：所有金流維持在模擬環境。')} aria-label="關閉通知"><X className="size-3.5" /></button></div>
       {tab === 'command' && <CommandCenter risk={risk} scenario={scenario} running={running} onRun={() => runScenario()} onOpenBreaker={() => setBreakerOpen(true)} onNavigate={setTab} />}
       {tab === 'lab' && <ScenarioLab selected={scenarioId} severity={severity} floor={liquidityFloor} running={running} onSelect={setScenarioId} onSeverity={setSeverity} onFloor={setLiquidityFloor} onRun={() => runScenario()} />}
-      {tab === 'ledger' && <IntentLedger intents={risk.intents} />}
-      {tab === 'evidence' && <EvidencePanel audit={audit} replayBlocked={replayBlocked} onReplay={blockReplay} onDownload={downloadEvidence} risk={risk} />}
+      {tab === 'ledger' && <IntentLedger intents={risk.intents} commitments={commitments} />}
+      {tab === 'evidence' && <EvidencePanel audit={audit} replayBlocked={replayBlocked} onReplay={blockReplay} onDownload={downloadEvidence} risk={risk} auditHead={auditHead} commitmentCount={Object.keys(commitments).length} />}
     </div>
     <footer className="mx-auto flex max-w-[1500px] flex-col gap-2 border-t border-white/8 px-4 py-5 text-[11px] text-slate-500 sm:flex-row sm:justify-between lg:px-8"><span>HerdBrake Taiwan · Hackathon demonstrator</span><span>Simulation only · No custody · No autonomous execution · Human approval required</span></footer>
     {breakerOpen && <BreakerDialog risk={risk} count={releaseCount} prioritize={prioritizeCritical} onCount={setReleaseCount} onPrioritize={setPrioritizeCritical} onClose={() => setBreakerOpen(false)} onRelease={() => stageRelease()} />}
@@ -139,7 +180,7 @@ function StartupSite({ onLaunch }: { onLaunch: () => void }) {
     <header className="startup-nav">
       <div className="startup-container flex h-[76px] items-center justify-between">
         <a href="#top" className="flex items-center gap-2.5 font-semibold tracking-[-.02em]" aria-label="HerdBrake 首頁"><StartupMark /><span>HerdBrake</span></a>
-        <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#56605a] lg:flex" aria-label="網站導覽"><a href="#problem">Why HerdBrake</a><a href="#platform">Platform</a><a href="#taiwan">Taiwan readiness</a><a href="#research">Research</a></nav>
+        <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#56605a] lg:flex" aria-label="網站導覽"><a href="#problem">Why HerdBrake</a><a href="#platform">Platform</a><a href="#engineering">Engineering</a><a href="#taiwan">Taiwan readiness</a><a href="#research">Research</a></nav>
         <button onClick={onLaunch} className="startup-button startup-button-dark">Open live product <ArrowRight /></button>
       </div>
     </header>
@@ -197,9 +238,22 @@ function StartupSite({ onLaunch }: { onLaunch: () => void }) {
       </div>
     </section>
 
+    <section id="engineering" className="startup-section bg-white">
+      <div className="startup-container">
+        <SectionLead index="04" eyebrow="Live engineering" title="The demo is backed by a real assurance service." body="Every stress run, intent, release and replay probe is processed server-side and persisted. The browser is a control surface—not the source of truth." />
+        <div className="mt-16 grid border-y border-[#c9cec6] md:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-[#c9cec6]">
+          <EngineeringProof label="Persistence" value="Cloudflare D1" body="Runs, intents, audit events and idempotency records survive reloads." />
+          <EngineeringProof label="Integrity" value="SHA-256 chain" body="Canonical commitments and linked audit hashes reveal tampering." />
+          <EngineeringProof label="Execution safety" value="Idempotent release" body="Repeated authorization requests return the prior result." />
+          <EngineeringProof label="Replay defense" value="Unique nonce" body="Duplicate intent nonces are rejected before execution." />
+        </div>
+        <div className="mt-8 flex flex-col justify-between gap-6 bg-[#111714] px-6 py-6 text-white sm:flex-row sm:items-center sm:px-8"><div className="flex items-center gap-4"><span className="relative flex size-3"><span className="absolute inline-flex size-full animate-ping rounded-full bg-[#5fd2a5] opacity-40" /><span className="relative inline-flex size-3 rounded-full bg-[#5fd2a5]" /></span><div><p className="text-sm font-semibold">Assurance API</p><p className="mt-1 font-mono text-[10px] text-white/45">D1 · Worker runtime · no real funds</p></div></div><div className="flex gap-5 text-xs"><a className="border-b border-white/40 pb-1 hover:border-[#ff8067] hover:text-[#ff8067]" href="/api/health" target="_blank">Live health ↗</a><a className="border-b border-white/40 pb-1 hover:border-[#ff8067] hover:text-[#ff8067]" href="/api/openapi" target="_blank">OpenAPI 3.1 ↗</a></div></div>
+      </div>
+    </section>
+
     <section id="taiwan" className="startup-section">
       <div className="startup-container">
-        <SectionLead index="04" eyebrow="Taiwan readiness" title="Built for a responsible pilot, not regulatory theatre." body="The first deployment sits inside one enterprise or financial institution, uses synthetic or non-custodial payment intents, and keeps final authorization with accountable people." />
+        <SectionLead index="05" eyebrow="Taiwan readiness" title="Built for a responsible pilot, not regulatory theatre." body="The first deployment sits inside one enterprise or financial institution, uses synthetic or non-custodial payment intents, and keeps final authorization with accountable people." />
         <div className="mt-16 grid gap-px overflow-hidden border border-[#c9cec6] bg-[#c9cec6] md:grid-cols-2">
           <ReadinessItem icon={Building2} title="Single-organization pilot" body="Start with multiple departments, subsidiaries, or treasury agents under one governance perimeter." />
           <ReadinessItem icon={Scale} title="Regulatory boundary first" body="No custody or money transmission in the MVP. Regulated activity requires licensed partners or an approved experiment." />
@@ -211,7 +265,7 @@ function StartupSite({ onLaunch }: { onLaunch: () => void }) {
     </section>
 
     <section id="research" className="startup-section border-y border-[#cfd3cb] bg-white">
-      <div className="startup-container grid gap-14 lg:grid-cols-[.75fr_1.25fr]"><div><span className="section-index">05</span><p className="mt-8 text-xs font-semibold uppercase tracking-[.18em] text-[#ff5938]">Why now</p><h2 className="mt-4 text-4xl font-semibold tracking-[-.04em]">Agents are reaching the execution layer.</h2></div><div className="divide-y divide-[#d8dcd5] border-y border-[#d8dcd5]"><ResearchRow source="BIS · Project Logos" title="LLM agents can amplify correlated financial decisions." tag="Research signal" href="https://www.bis.org/project/logos" /><ResearchRow source="Industry direction" title="Payment platforms are building policy controls for agentic transactions." tag="Market signal" href="https://www.fireblocks.com/products/agentic-payments" /><ResearchRow source="HerdBrake thesis" title="The missing layer is aggregate intervention before execution." tag="Product gap" /></div></div>
+      <div className="startup-container grid gap-14 lg:grid-cols-[.75fr_1.25fr]"><div><span className="section-index">06</span><p className="mt-8 text-xs font-semibold uppercase tracking-[.18em] text-[#ff5938]">Why now</p><h2 className="mt-4 text-4xl font-semibold tracking-[-.04em]">Agents are reaching the execution layer.</h2></div><div className="divide-y divide-[#d8dcd5] border-y border-[#d8dcd5]"><ResearchRow source="BIS · Project Logos" title="LLM agents can amplify correlated financial decisions." tag="Research signal" href="https://www.bis.org/project/logos" /><ResearchRow source="Industry direction" title="Payment platforms are building policy controls for agentic transactions." tag="Market signal" href="https://www.fireblocks.com/products/agentic-payments" /><ResearchRow source="HerdBrake thesis" title="The missing layer is aggregate intervention before execution." tag="Product gap" /></div></div>
     </section>
 
     <section className="startup-section bg-[#ff5938] text-[#111714]">
@@ -238,6 +292,7 @@ function MiniFeature({ icon: Icon, title, body }: { icon: typeof Radar; title: s
 function PlatformDiagram() { return <div><div className="flex items-center justify-between"><span className="diagram-label">Agent intents</span><span className="diagram-label">Execution gateway</span></div><div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4"><div className="grid grid-cols-5 gap-2">{Array.from({ length: 15 }, (_, i) => <span key={i} className={`h-7 border ${i < 11 ? 'border-[#ff5938] bg-[#ff5938]/15' : 'border-[#9ca49d]'}`} />)}</div><ArrowRight className="size-5 text-[#8a938d]" /><div className="border-2 border-[#ff5938] bg-white p-5"><p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#ff5938]">Shared breaker</p><p className="mt-2 text-2xl font-semibold">HOLD</p><p className="mt-5 border-t border-[#d8dcd5] pt-3 font-mono text-[10px] text-[#707a73]">POLICY / HB-LIQ-003</p></div></div></div>; }
 function DarkFeature({ label, value }: { label: string; value: string }) { return <div className="py-6 sm:px-6 first:pl-0"><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-white/35">{label}</p><p className="mt-2 text-sm font-medium">{value}</p></div>; }
 function ReadinessItem({ icon: Icon, title, body }: { icon: typeof Building2; title: string; body: string }) { return <div className="bg-[#f4f3ee] p-7 sm:p-9"><Icon className="size-5 text-[#ff5938]" /><h3 className="mt-10 text-xl font-semibold tracking-[-.025em]">{title}</h3><p className="mt-3 max-w-lg text-sm leading-6 text-[#606963]">{body}</p></div>; }
+function EngineeringProof({ label, value, body }: { label: string; value: string; body: string }) { return <div className="py-8 md:px-6 lg:px-7"><p className="font-mono text-[10px] uppercase tracking-[.14em] text-[#818983]">{label}</p><h3 className="mt-8 text-xl font-semibold tracking-[-.03em]">{value}</h3><p className="mt-3 text-xs leading-5 text-[#68716b]">{body}</p></div>; }
 function ResearchRow({ source, title, tag, href }: { source: string; title: string; tag: string; href?: string }) { const content = <><div><p className="text-[10px] font-semibold uppercase tracking-[.15em] text-[#7b847e]">{source}</p><p className="mt-2 text-base font-medium">{title}</p></div><span className="shrink-0 font-mono text-[10px] uppercase text-[#ff5938]">{tag}</span></>; return href ? <a href={href} target="_blank" rel="noreferrer" className="research-row">{content}</a> : <div className="research-row">{content}</div>; }
 function PreviewRow({ label, value, safe = false }: { label: string; value: string; safe?: boolean }) { return <div className="flex justify-between border-b border-[#d1d5cd] pb-3 text-[11px]"><span className="text-[#747d77]">{label}</span><span className={`font-mono font-semibold ${safe ? 'text-[#1e5d49]' : ''}`}>{value}</span></div>; }
 
@@ -257,14 +312,14 @@ function ScenarioLab({ selected, severity, floor, running, onSelect, onSeverity,
   return <section><PageTitle eyebrow="Deployment rehearsal" title="Scenario Lab" description="上線前先讓 30 個代理遭遇相同衝擊，檢查政策是否會把個別合理決策放大成群體風險。" /><div className="grid gap-5 xl:grid-cols-[1fr_360px]"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{scenarios.map((item) => <button key={item.id} onClick={() => onSelect(item.id)} className={`scenario-card ${selected === item.id ? 'scenario-card-active' : ''}`}><div className="mb-5 flex items-start justify-between"><span className="scenario-icon">{item.icon}</span>{selected === item.id && <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-cyan-300"><Check className="size-3" />Selected</span>}</div><h3>{item.shortName}</h3><p>{item.description}</p><span className="mt-4 block font-mono text-[10px] text-slate-500">SIGNAL · {item.commonSignal}</span></button>)}</div><aside className="panel h-fit p-5 sm:p-6"><p className="eyebrow">Test configuration</p><h2 className="mt-1 text-lg font-semibold">Guardrail controls</h2><div className="mt-6 space-y-7"><Control label="Shock severity" value={`${Math.round(severity * 100)}%`} detail="影響 agents 同步採取防禦行動的比例"><Slider value={[severity * 100]} min={10} max={100} step={10} onValueChange={(value) => onSeverity(firstSliderValue(value) / 100)} /></Control><Control label="Liquidity floor" value={`${floor}%`} detail="集團付款後必須保留的最低現金緩衝"><Slider value={[floor]} min={60} max={90} step={1} onValueChange={(value) => onFloor(firstSliderValue(value))} /></Control><div className="rounded-lg border border-white/8 bg-white/3 p-4 text-xs"><div className="flex justify-between"><span className="text-slate-400">Treasury agents</span><span className="font-mono">30 fixed</span></div><div className="mt-3 flex justify-between"><span className="text-slate-400">Decision engine</span><span className="font-mono text-emerald-300">Deterministic</span></div><div className="mt-3 flex justify-between"><span className="text-slate-400">Execution</span><span className="font-mono">Simulation</span></div></div><Button onClick={onRun} disabled={running} className="h-11 w-full bg-cyan-300 font-semibold text-[#07111d] hover:bg-cyan-200">{running ? <Activity className="animate-pulse" /> : <Play />}{running ? 'Running 30 agents' : 'Run stress test'}</Button></div></aside></div></section>;
 }
 
-function IntentLedger({ intents }: { intents: PaymentIntent[] }) {
+function IntentLedger({ intents, commitments }: { intents: PaymentIntent[]; commitments: Record<string, string> }) {
   const [query, setQuery] = useState(''); const [filter, setFilter] = useState<'ALL' | 'HELD' | 'RELEASED'>('ALL');
   const visible = intents.filter((i) => (filter === 'ALL' || i.status === filter) && `${i.id} ${i.entity} ${i.destination}`.toLowerCase().includes(query.toLowerCase()));
-  return <section><PageTitle eyebrow="Pre-signature observability" title="Intent Ledger" description="所有個別政策都 PASS；HerdBrake 額外檢查這些合法意圖合起來是否安全。" /><div className="panel overflow-hidden"><div className="flex flex-col gap-3 border-b border-white/8 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="relative max-w-sm flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="搜尋 entity、destination、intent…" className="h-10 w-full rounded-md border border-white/10 bg-[#091421] pl-9 pr-3 text-sm outline-none focus:border-cyan-300/60" /></div><div className="flex gap-1">{(['ALL', 'HELD', 'RELEASED'] as const).map((value) => <button key={value} onClick={() => setFilter(value)} className={`filter-chip ${filter === value ? 'filter-chip-active' : ''}`}>{value}</button>)}</div></div><div className="overflow-x-auto"><table className="intent-table"><thead><tr><th>Intent</th><th>Entity</th><th>Action</th><th>Destination</th><th className="text-right">Amount</th><th>Individual</th><th>Status</th><th>Nonce</th></tr></thead><tbody>{visible.map((intent) => <tr key={intent.id}><td className="font-mono text-slate-300">{intent.id}</td><td>{intent.entity}{intent.critical && <span className="ml-2 text-[9px] font-bold text-amber-300">CRITICAL</span>}</td><td><span className={`inline-flex min-w-16 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-bold ${actionStyles[intent.action]}`}>{actionMarks[intent.action]} {intent.action}</span></td><td className="font-mono">{intent.destination}</td><td className="text-right font-mono tabular-nums">{formatMoney(intent.amount)}</td><td><span className="text-emerald-300">✓ PASS</span></td><td><span className={intent.status === 'RELEASED' ? 'text-cyan-300' : 'text-rose-300'}>{intent.status}</span></td><td className="font-mono text-slate-500">{intent.nonce}</td></tr>)}</tbody></table></div><div className="border-t border-white/8 px-5 py-3 text-xs text-slate-500">Showing {visible.length} of {intents.length} intents · no PII · synthetic data</div></div></section>;
+  return <section><PageTitle eyebrow="Pre-signature observability" title="Intent Ledger" description="所有個別政策都 PASS；HerdBrake 額外檢查這些合法意圖合起來是否安全。" /><div className="panel overflow-hidden"><div className="flex flex-col gap-3 border-b border-white/8 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="relative max-w-sm flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="搜尋 entity、destination、intent…" className="h-10 w-full rounded-md border border-white/10 bg-[#091421] pl-9 pr-3 text-sm outline-none focus:border-cyan-300/60" /></div><div className="flex gap-1">{(['ALL', 'HELD', 'RELEASED'] as const).map((value) => <button key={value} onClick={() => setFilter(value)} className={`filter-chip ${filter === value ? 'filter-chip-active' : ''}`}>{value}</button>)}</div></div><div className="overflow-x-auto"><table className="intent-table"><thead><tr><th>Intent</th><th>Entity</th><th>Action</th><th>Destination</th><th className="text-right">Amount</th><th>Individual</th><th>Status</th><th>Nonce</th><th>Commitment</th></tr></thead><tbody>{visible.map((intent) => <tr key={intent.id}><td className="font-mono text-slate-300">{intent.id}</td><td>{intent.entity}{intent.critical && <span className="ml-2 text-[9px] font-bold text-amber-300">CRITICAL</span>}</td><td><span className={`inline-flex min-w-16 items-center justify-center gap-1 rounded px-2 py-1 text-[10px] font-bold ${actionStyles[intent.action]}`}>{actionMarks[intent.action]} {intent.action}</span></td><td className="font-mono">{intent.destination}</td><td className="text-right font-mono tabular-nums">{formatMoney(intent.amount)}</td><td><span className="text-emerald-300">✓ PASS</span></td><td><span className={intent.status === 'RELEASED' ? 'text-cyan-300' : 'text-rose-300'}>{intent.status}</span></td><td className="font-mono text-slate-500">{intent.nonce}</td><td className="font-mono text-slate-500">{commitments[intent.id] ? `${commitments[intent.id].slice(0, 10)}…` : 'pending'}</td></tr>)}</tbody></table></div><div className="border-t border-white/8 px-5 py-3 text-xs text-slate-500">Showing {visible.length} of {intents.length} intents · {Object.keys(commitments).length} server commitments · no PII</div></div></section>;
 }
 
-function EvidencePanel({ audit, replayBlocked, onReplay, onDownload, risk }: { audit: AuditEvent[]; replayBlocked: boolean; onReplay: () => void; onDownload: () => void; risk: ReturnType<typeof runRiskEngine> }) {
-  return <section><PageTitle eyebrow="Audit-ready assurance" title="Evidence Pack" description="把「為何暫停、誰放行、如何防重播」整理成可下載且可重現的決策證據。" /><div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]"><div className="panel"><div className="panel-header"><div><p className="eyebrow">Immutable event trail</p><h2>Decision timeline</h2></div><History className="size-5 text-slate-500" /></div><div className="p-5 sm:p-6">{audit.map((event, index) => <div key={`${event.time}-${index}`} className="timeline-row"><span className={`timeline-dot ${event.tone === 'danger' ? 'bg-rose-400' : event.tone === 'safe' ? 'bg-emerald-400' : 'bg-slate-500'}`} /><div className="min-w-0 flex-1"><div className="flex flex-col justify-between gap-1 sm:flex-row"><h3 className="text-sm font-medium">{event.title}</h3><time className="font-mono text-[11px] text-slate-500">{event.time} CST</time></div><p className="mt-1 text-xs leading-5 text-slate-400">{event.detail}</p></div></div>)}</div></div><div className="space-y-5"><div className="panel p-5 sm:p-6"><p className="eyebrow">Policy attestation</p><div className="mt-4 grid grid-cols-2 gap-3"><EvidenceDatum label="Policy" value="v2.4.1" /><EvidenceDatum label="Rule hash" value="7F3A…9C21" /><EvidenceDatum label="Decision" value="HOLD" danger /><EvidenceDatum label="Reason" value={risk.reasonCode} /></div><div className="mt-4 rounded-lg border border-white/8 bg-white/3 p-3 text-xs leading-5 text-slate-400"><LockKeyhole className="mb-2 size-4 text-cyan-300" />LLM 只產生代理意圖；HOLD、分批放行與 nonce 驗證由外部確定性政策執行。</div></div><div className="panel p-5 sm:p-6"><p className="eyebrow">Adversarial check</p><h2 className="mt-1 text-lg font-semibold">Replay protection</h2><p className="mt-2 text-xs leading-5 text-slate-400">用已消耗的 nonce 重送付款意圖，驗證系統不會重複放款。</p><Button onClick={onReplay} disabled={replayBlocked} variant="outline" className="mt-4 w-full border-white/12 bg-transparent hover:bg-white/5">{replayBlocked ? <CheckCircle2 className="text-emerald-300" /> : <Fingerprint />}{replayBlocked ? 'REPLAY BLOCKED' : 'Run replay attack'}</Button></div><Button onClick={onDownload} className="h-11 w-full bg-white font-semibold text-[#07111d] hover:bg-slate-200"><Download />Download evidence JSON</Button></div></div></section>;
+function EvidencePanel({ audit, replayBlocked, onReplay, onDownload, risk, auditHead, commitmentCount }: { audit: AuditEvent[]; replayBlocked: boolean; onReplay: () => void; onDownload: () => void; risk: ReturnType<typeof runRiskEngine>; auditHead: string | null; commitmentCount: number }) {
+  return <section><PageTitle eyebrow="Audit-ready assurance" title="Evidence Pack" description="把「為何暫停、誰放行、如何防重播」整理成可下載且可重現的決策證據。" /><div className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]"><div className="panel"><div className="panel-header"><div><p className="eyebrow">Immutable event trail</p><h2>Decision timeline</h2></div><History className="size-5 text-slate-500" /></div><div className="p-5 sm:p-6">{audit.map((event, index) => <div key={`${event.time}-${index}`} className="timeline-row"><span className={`timeline-dot ${event.tone === 'danger' ? 'bg-rose-400' : event.tone === 'safe' ? 'bg-emerald-400' : 'bg-slate-500'}`} /><div className="min-w-0 flex-1"><div className="flex flex-col justify-between gap-1 sm:flex-row"><h3 className="text-sm font-medium">{event.title}</h3><time className="font-mono text-[11px] text-slate-500">{event.time} CST</time></div><p className="mt-1 text-xs leading-5 text-slate-400">{event.detail}</p></div></div>)}</div></div><div className="space-y-5"><div className="panel p-5 sm:p-6"><p className="eyebrow">Policy attestation</p><div className="mt-4 grid grid-cols-2 gap-3"><EvidenceDatum label="Commitments" value={String(commitmentCount)} /><EvidenceDatum label="Audit head" value={auditHead ? `${auditHead.slice(0, 12)}…` : 'pending'} /><EvidenceDatum label="Decision" value="HOLD" danger /><EvidenceDatum label="Reason" value={risk.reasonCode} /></div><div className="mt-4 rounded-lg border border-white/8 bg-white/3 p-3 text-xs leading-5 text-slate-400"><LockKeyhole className="mb-2 size-4 text-cyan-300" />LLM 只產生代理意圖；HOLD、分批放行與 nonce 驗證由外部確定性政策執行。</div></div><div className="panel p-5 sm:p-6"><p className="eyebrow">Adversarial check</p><h2 className="mt-1 text-lg font-semibold">Replay protection</h2><p className="mt-2 text-xs leading-5 text-slate-400">用已消耗的 nonce 重送付款意圖，驗證系統不會重複放款。</p><Button onClick={onReplay} disabled={replayBlocked} variant="outline" className="mt-4 w-full border-white/12 bg-transparent hover:bg-white/5">{replayBlocked ? <CheckCircle2 className="text-emerald-300" /> : <Fingerprint />}{replayBlocked ? 'REPLAY BLOCKED' : 'Run replay attack'}</Button></div><Button onClick={onDownload} className="h-11 w-full bg-white font-semibold text-[#07111d] hover:bg-slate-200"><Download />Download evidence JSON</Button></div></div></section>;
 }
 
 function BreakerDialog({ risk, count, prioritize, onCount, onPrioritize, onClose, onRelease }: { risk: ReturnType<typeof runRiskEngine>; count: number; prioritize: boolean; onCount: (n: number) => void; onPrioritize: (b: boolean) => void; onClose: () => void; onRelease: () => void }) {

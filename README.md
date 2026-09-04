@@ -43,4 +43,16 @@ npm run build
 - `app/page.tsx`: shared interactive surface for people and WebMCP-capable agents.
 - `tests/risk-engine.test.ts`: breaker and safe-release invariants.
 
-The prototype intentionally keeps all state client-side. This makes the judging flow fast and reproducible without implying that the demo is a regulated payment service.
+## Assurance service
+
+The product UI is backed by a Cloudflare Worker-compatible API and D1 persistence:
+
+- `POST /api/runs` validates inputs, executes the deterministic fleet-risk engine, creates 30 intent commitments, and stores the initial audit chain.
+- `GET /api/runs/:id` reads the durable run and current release state.
+- `POST /api/runs/:id/release` requires an idempotency key and stages up to ten intents with human authorization recorded.
+- `POST /api/runs/:id/replay` probes an already-registered nonce and records the blocked attempt.
+- `GET /api/runs/:id/evidence` returns commitments, linked audit events, chain verification, and a hash of the complete evidence package.
+- `GET /api/health` checks runtime and D1 connectivity.
+- `GET /api/openapi` publishes the OpenAPI 3.1 contract.
+
+The database schema and append-only migration are under `db/` and `drizzle/`. The application remains a non-custodial demonstrator: it persists synthetic payment intentions and assurance evidence, not bank credentials or real funds.
