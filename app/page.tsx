@@ -70,10 +70,10 @@ declare global {
 }
 
 const tabs: { id: Tab; label: string; icon: typeof Activity }[] = [
-  { id: 'command', label: 'Command Center', icon: Activity },
-  { id: 'lab', label: 'Scenario Lab', icon: SlidersHorizontal },
-  { id: 'ledger', label: 'Intent Ledger', icon: ClipboardCheck },
-  { id: 'evidence', label: 'Evidence', icon: FileCheck2 },
+  { id: 'command', label: 'Risk overview', icon: Activity },
+  { id: 'lab', label: 'Stress testing', icon: SlidersHorizontal },
+  { id: 'ledger', label: 'Payment intents', icon: ClipboardCheck },
+  { id: 'evidence', label: 'Audit & evidence', icon: FileCheck2 },
 ];
 
 const actionStyles: Record<AgentAction, string> = {
@@ -514,7 +514,7 @@ export default function Home() {
     );
 
   return (
-    <main className="enterprise-shell bg-background text-foreground">
+    <main className="enterprise-shell">
       <header className="enterprise-topbar">
         <div className="enterprise-brand-cell">
           <button
@@ -744,7 +744,9 @@ function EnterpriseSidebar({
               <Icon />
               <span>{label}</span>
               {id === 'command' && risk.state === 'CRITICAL' && (
-                <span className="ml-auto size-1.5 rounded-full bg-rose-400" />
+                <span className="ml-auto rounded-full bg-[#fef3f2] px-2 py-0.5 font-mono text-[9px] text-[#b42318]">
+                  {risk.intents.filter((item) => item.status === 'HELD').length}
+                </span>
               )}
             </button>
           ))}
@@ -1596,7 +1598,7 @@ function CommandCenter({
           onClick={onRun}
           disabled={running}
           size="lg"
-          className="h-10 bg-cyan-300 px-4 font-semibold text-[#07111d] hover:bg-cyan-200"
+          className="h-10 bg-[#155eef] px-4 font-semibold text-white hover:bg-[#004eeb]"
         >
           {running ? <Activity className="animate-pulse" /> : <RotateCcw />}
           {running ? 'Recomputing risk' : 'Rerun scenario'}
@@ -1730,7 +1732,7 @@ function CommandCenter({
             <Button
               onClick={onOpenBreaker}
               disabled={held === 0}
-              className="mt-5 h-10 w-full justify-between bg-white text-[#07111d] hover:bg-slate-200"
+              className="mt-5 h-10 w-full justify-between bg-[#155eef] text-white hover:bg-[#004eeb]"
             >
               Open breaker controls <ArrowRight />
             </Button>
@@ -1849,7 +1851,7 @@ function ScenarioLab({
             <Button
               onClick={onRun}
               disabled={running}
-              className="h-11 w-full bg-cyan-300 font-semibold text-[#07111d] hover:bg-cyan-200"
+              className="h-11 w-full bg-[#155eef] font-semibold text-white hover:bg-[#004eeb]"
             >
               {running ? <Activity className="animate-pulse" /> : <Play />}
               {running ? 'Running 30 agents' : 'Run stress test'}
@@ -1892,7 +1894,7 @@ function IntentLedger({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜尋 entity、destination、intent…"
-              className="h-10 w-full rounded-md border border-white/10 bg-[#091421] pl-9 pr-3 text-sm outline-none focus:border-cyan-300/60"
+              className="h-10 w-full rounded-md border border-[#d0d5dd] bg-white pl-9 pr-3 text-sm text-[#101828] outline-none placeholder:text-[#98a2b3] focus:border-[#528bff] focus:ring-2 focus:ring-[#dbe7ff]"
             />
           </div>
           <div className="flex gap-1">
@@ -2068,7 +2070,7 @@ function EvidencePanel({
               onClick={onReplay}
               disabled={replayBlocked}
               variant="outline"
-              className="mt-4 w-full border-white/12 bg-transparent hover:bg-white/5"
+              className="mt-4 w-full border-[#d0d5dd] bg-white text-[#344054] hover:bg-[#f8fafc]"
             >
               {replayBlocked ? (
                 <CheckCircle2 className="text-emerald-300" />
@@ -2080,7 +2082,7 @@ function EvidencePanel({
           </div>
           <Button
             onClick={onDownload}
-            className="h-11 w-full bg-white font-semibold text-[#07111d] hover:bg-slate-200"
+            className="h-11 w-full bg-[#101828] font-semibold text-white hover:bg-[#1d2939]"
           >
             <Download />
             Download evidence JSON
