@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">HerdBrake Taiwan</title><desc id="desc">Agentic payment assurance control surface</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07111d"/><stop offset="1" stop-color="#10243a"/></linearGradient><radialGradient id="glow"><stop stop-color="#67e8f9" stop-opacity=".22"/><stop offset="1" stop-color="#67e8f9" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1200" height="630" fill="url(#bg)"/><circle cx="930" cy="100" r="420" fill="url(#glow)"/>
+  <g opacity=".15" stroke="#67e8f9"><path d="M0 120h1200M0 240h1200M0 360h1200M0 480h1200M160 0v630M320 0v630M480 0v630M640 0v630M800 0v630M960 0v630M1120 0v630"/></g>
+  <g transform="translate(80 95)"><path d="M78 0 146 26v64c0 54-27 88-68 112C37 178 10 144 10 90V26Z" fill="#67e8f9" fill-opacity=".1" stroke="#67e8f9" stroke-width="4"/><path d="m47 98 21 21 43-53" fill="none" stroke="#67e8f9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <text x="80" y="385" fill="#f8fafc" font-family="Arial, sans-serif" font-size="76" font-weight="700" letter-spacing="-3">HerdBrake Taiwan</text>
+  <text x="84" y="448" fill="#9fb1c5" font-family="Arial, sans-serif" font-size="29">Detect the herd. Hold before money moves.</text>
+  <g transform="translate(82 510)" font-family="monospace" font-size="18"><rect width="200" height="48" rx="8" fill="#fb7185" fill-opacity=".12" stroke="#fb7185" stroke-opacity=".45"/><circle cx="25" cy="24" r="6" fill="#fb7185"/><text x="44" y="30" fill="#fda4af">RISK · CRITICAL</text><rect x="220" width="240" height="48" rx="8" fill="#67e8f9" fill-opacity=".1" stroke="#67e8f9" stroke-opacity=".35"/><text x="244" y="30" fill="#a5f3fc">PRE-EXECUTION HOLD</text></g>
+</svg>
