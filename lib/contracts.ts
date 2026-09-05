@@ -10,6 +10,8 @@ export type RunInput = {
   scenarioId: ScenarioId;
   severity: number;
   liquidityFloor: number;
+  requestId?: string;
+  policyRevision?: number;
 };
 export type ReleaseInput = {
   count: number;
@@ -18,6 +20,7 @@ export type ReleaseInput = {
   authorizationReason: string;
   idempotencyKey: string;
   expectedAuditHead?: string;
+  intentIds?: string[];
 };
 export type StoredRun = RunInput & {
   runId: string;
@@ -80,6 +83,29 @@ export function parseRunInput(value: unknown): RunInput {
     scenarioId: input.scenarioId as ScenarioId,
     severity: input.severity,
     liquidityFloor: input.liquidityFloor,
+    ...parseCreationIdentity(input),
+  };
+}
+
+export function parseCreationIdentity(input: Record<string, unknown>) {
+  if (
+    input.policyRevision !== undefined &&
+    (!Number.isSafeInteger(input.policyRevision) ||
+      Number(input.policyRevision) < 0)
+  )
+    throw new ApiError('請重新載入有效的政策版本。');
+  if (input.requestId !== undefined) {
+    if (typeof input.requestId !== 'string')
+      throw new ApiError('請求識別碼格式錯誤。');
+    validateRunId(`RUN-${input.requestId}`);
+  }
+  return {
+    ...(typeof input.requestId === 'string'
+      ? { requestId: input.requestId }
+      : {}),
+    ...(typeof input.policyRevision === 'number'
+      ? { policyRevision: input.policyRevision }
+      : {}),
   };
 }
 
@@ -130,6 +156,19 @@ export function parseReleaseInput(
       !/^[a-f0-9]{64}$/.test(input.expectedAuditHead))
   )
     throw new ApiError('Invalid expected audit head.');
+  if (
+    input.intentIds !== undefined &&
+    (!Array.isArray(input.intentIds) ||
+      input.intentIds.length !== count ||
+      new Set(input.intentIds).size !== count ||
+      input.intentIds.some(
+        (id) => typeof id !== 'string' || !/^[A-Za-z0-9:_-]{1,100}$/.test(id),
+      ) ||
+      typeof input.expectedAuditHead !== 'string')
+  )
+    throw new ApiError(
+      '請選擇 1 至 10 筆不重複的付款意圖，並提供目前審核版本。',
+    );
   return {
     count,
     idempotencyKey: key,
@@ -138,6 +177,9 @@ export function parseReleaseInput(
     prioritizeCritical: input.prioritizeCritical ?? true,
     ...(typeof input.expectedAuditHead === 'string'
       ? { expectedAuditHead: input.expectedAuditHead }
+      : {}),
+    ...(Array.isArray(input.intentIds)
+      ? { intentIds: input.intentIds as string[] }
       : {}),
   };
 }

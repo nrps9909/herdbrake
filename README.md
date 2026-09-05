@@ -18,9 +18,11 @@
 
 我們的目標使用者假設是管理多部門付款的財務主管：部門各自提交的付款都低於單筆上限，合併後卻可能突破同一批次的現金底線。HerdBrake 將模型提案、政策快照、人工核准與累計金額放在一起，讓審核者看見每次核准的影響。這個使用者需求仍待實際訪談與導入驗證。
 
-公開示範使用 US$32m 期初資金、90% 保留底線，故可核准額度為 US$3.2m。同一份真實模型紀錄提議付款 US$5.4m；先核准三筆關鍵薪資 US$2.7m 後，剩餘額度是 US$0.5m，再要求新增 US$1.8m 會被後端拒絕。這是合成案例中的限制驗證，沒有宣稱節省真實資金或工時。原始數據見 [驗收證據](docs/acceptance/demo-evidence-2026-09-06.json)。
+固定案例的公開示範使用 US$32m 期初資金、90% 保留底線，故可核准額度為 US$3.2m。同一份真實模型紀錄提議付款 US$5.4m；先核准三筆關鍵薪資 US$2.7m 後，剩餘額度是 US$0.5m，再要求新增 US$1.8m 會被後端拒絕。這是合成案例中的限制驗證，沒有宣稱節省真實資金或工時。原始數據見 [驗收證據](docs/acceptance/demo-evidence-2026-09-06.json)。
 
-AI 目前處理固定的十二張合成發票；自訂 CSV 走相同風控、審核與證據流程，**不會呼叫模型替匯入發票作決策**。完整功能界線與既有產品比較見 [評審說明](docs/JUDGES.md)。
+AI 提供兩種資料來源：保留十二張合成發票的穩定展示；也能讀取 **1–24 張自訂發票、最多三個部門**，分別產生真實模型提案。自訂發票的部門預算由後端累計檢查；一般「匯入批次」則直接處理已選定動作的 CSV。完整功能界線與既有產品比較見 [評審說明](docs/JUDGES.md)。
+
+最近的完整操作驗收見 [功能升級與實測](docs/acceptance/workflow-upgrade-2026-09-06.md)：自訂 AI 發票、逐筆核准、安全重試與瀏覽器獨立驗證。
 
 ## 評審快速啟動
 
@@ -60,26 +62,26 @@ Open `http://localhost:3000/` and select **登入工作區**. The official Sites
 - **Overview:** counts come from owned D1 records; the current batch shows its actual liquidity and action distribution. Empty workspaces provide import and scenario onboarding.
 - **Import:** UTF-8 CSV, 32 KiB, 1–50 intents, six required columns, quoted values, row-level errors and a preview. Invalid rows or stale policy versions prevent the entire import. Supported currencies: TWD, USD, USDC. Import amounts are positive, at most two decimal places and within the configured per-intent USD limit.
 - **History:** owner-scoped search, risk filters, stable pagination (20/page), reopen by URL and CSV export. Spreadsheet formula-like user text is neutralized on export.
-- **AI collaboration:** three independent Qwen sessions propose PAY/DELAY decisions for twelve synthetic invoices. Original prompts, responses and provenance are preserved. Live inference and explicitly labeled recorded replay use the same review and evidence flow.
+- **AI collaboration:** keep the twelve-invoice demo or provide 1–24 custom invoices across up to three departments. Each independent Qwen session sees only its department. Amounts/currencies/destinations are fixed by the input, while PAY/DELAY and raw reasons come from the model. Custom department budgets are enforced cumulatively at approval. A complete versioned trace binds the input, policy, model response and resulting intents.
 - **Scenario lab:** six reproducible 30-intent scenarios; local preview is explicitly unsaved. Saved results retain their original policy snapshot.
-- **Review:** selected intent IDs, original currencies, converted total, priority control, written reason and explicit confirmation. Up to ten held intents per approval; actor and scope are recorded. The request includes the reviewed audit head and a reusable idempotency key. Cumulative approved outflow plus the new request must remain within the captured liquidity floor and per-intent limit; over-budget requests return 422 without changing the batch. The review previews exactly the same IDs and calculation.
-- **Evidence:** persisted timeline, SHA-256 audit chain, original-intent commitments, policy/metadata consistency, release-state and cumulative-budget verification, real duplicate-nonce constraint probe and JSON download.
+- **Review:** choose exact rows with checkboxes, use the count/priority controls, or request a feasible suggestion that still requires human confirmation. Review selected intent IDs, original currencies, converted total, priority control, written reason and explicit confirmation. Up to ten held intents per approval; actor and scope are recorded. The request includes the reviewed audit head and a reusable idempotency key. Cumulative approved outflow plus the new request must remain within the captured liquidity floor and per-intent limit; over-budget requests return 422 without changing the batch. The review previews exactly the same IDs and calculation.
+- **Evidence:** public `/verify` and the workspace can independently verify a JSON file in the browser without uploading it. The shared nine-check verifier also powers the CLI. Includes persisted timeline, SHA-256 audit chain, original-intent commitments, policy/metadata consistency, release-state and cumulative-budget verification, real duplicate-nonce constraint probe and JSON download.
 - **Settings:** workspace name, liquidity, concentration, herd threshold, CSV limit and manual currency conversion; optimistic concurrency and the latest twenty policy versions.
 - **Interaction:** responsive sidebar/mobile navigation, accessible dialogs, keyboard batch search, loading/error recovery, bookmarkable views and sign-in return paths. Optional WebMCP tools preserve human-only approval.
 
 ## Validation
 
 ```bash
-npm run check                 # lint + strict types + 61 tests + production build
+npm run check                 # lint + strict types + 67 tests + production build
 npm run db:migrate:local
 npm run test:integration      # owns a local server on port 4317; stops it afterward
 ```
 
-Stop the existing development server before using the self-contained integration runner. For an already-running **development** server, use `npm run test:api`. Override only a local address with `HERDBRAKE_TEST_ORIGIN`. Seven HTTP integration suites test AI provenance and retries, all six scenarios, real D1 concurrency, authentication, header-spoof rejection, CSRF protection, imports, policy conflicts, search and evidence/CSV downloads. They create local synthetic records and one unchanged-content policy revision; they never target a hosted Site.
+Stop the existing development server before using the self-contained integration runner. For an already-running **development** server, use `npm run test:api`. Override only a local address with `HERDBRAKE_TEST_ORIGIN`. Eight HTTP integration tests test AI provenance and retries, all six scenarios, real D1 concurrency, authentication, header-spoof rejection, CSRF protection, imports, policy conflicts, search and evidence/CSV downloads. They create local synthetic records and one unchanged-content policy revision; they never target a hosted Site.
 
-The unit/repository tests execute actual SQL against Node's built-in SQLite with transaction rollback, including legacy migration, per-account isolation, policy races, tampering, CSV edge cases and mutation limits. `.github/workflows/check.yml` installs the lockfile and runs the same checks using [GitHub's official actions](https://github.com/actions/setup-node). [The published source passed GitHub CI](https://github.com/nrps9909/herdbrake/actions/runs/33984471381), including all 55 unit/SQL tests, seven HTTP integration tests and the production build.
+The unit/repository tests execute actual SQL against Node's built-in SQLite with transaction rollback, including legacy migration, per-account isolation, policy races, tampering, CSV edge cases and mutation limits. `.github/workflows/check.yml` installs the lockfile and runs the same checks using [GitHub's official actions](https://github.com/actions/setup-node). Current commit results are available in [Quality checks](https://github.com/nrps9909/herdbrake/actions/workflows/check.yml); earlier acceptance records retain the CI links for their historical versions.
 
-The subsequent submission audit adds six offline evidence regression tests (61 total). The v0.2.0 video records the earlier 55-test version; its UI and demonstrated approval behavior remain unchanged. To verify a downloaded evidence package without running the server:
+The first submission audit added six offline evidence tests (61 total). The workflow upgrade adds six tests for custom inputs, exact approval and retry recovery (67 total), plus an eighth HTTP integration test. The v0.2.0 video records the earlier 55-test version and remains a valid demonstration of the fixed invoice scenario. New controls and custom-invoice behavior are documented in the latest acceptance record. To verify a downloaded evidence package without running the server:
 
 ```bash
 node --experimental-strip-types scripts/verify-evidence.ts docs/acceptance/demo-evidence-2026-09-06.json
@@ -111,7 +113,7 @@ That production preview deliberately has no local sign-in simulator. Public rout
 | `lib/herdbrake.ts`, `lib/import-csv.ts`, `lib/assurance-core.ts` | Pure risk logic, bounded CSV parsing/export and canonical hashing                                          |
 | `db/`, `drizzle/`                                                | Schema and append-only migrations                                                                          |
 
-API handlers return non-cacheable data, bounded error messages, request IDs and structured internal-failure logs without request bodies or identity details. JSON bodies are capped at 8 KiB (40 KiB for import). Mutations are capped at 60 per account per minute with `429` and `Retry-After`. This is an application budget; platform-level traffic protection is a separate hosting control.
+API handlers return non-cacheable data, bounded error messages, request IDs and structured internal-failure logs without request bodies or identity details. JSON bodies are capped at 8 KiB (40 KiB for CSV import and AI input). Mutations are capped at 60 per account per minute with `429` and `Retry-After`. This is an application budget; platform-level traffic protection is a separate hosting control.
 
 ## API
 
@@ -134,7 +136,7 @@ API handlers return non-cacheable data, bounded error messages, request IDs and 
 
 All data routes require a signed-in owner. Writes additionally require `x-herdbrake-client: workspace` and a same-origin request. This marker is not authentication. Requests for another user's run return `404`, including requests replaying an existing idempotency key.
 
-Concurrent approvals use a unique `(run_id, sequence)` index as an optimistic lock inside a D1 batch. Competing writes roll back instead of branching the chain. Identical retries return the original response. Invalid evidence, stale heads and conflicting keys return `409`. A rejected liquidity/per-intent approval returns `422`. Creation/import retries can still create another batch; approvals and AI requests have explicit idempotency protection, not all operations.
+Concurrent approvals use a unique `(run_id, sequence)` index as an optimistic lock inside a D1 batch. Competing writes roll back instead of branching the chain. Identical retries return the original response. Invalid evidence, stale heads and conflicting keys return `409`. A rejected liquidity/per-intent/custom-department approval returns `422`. Scenario, CSV and AI creation accept a UUID requestId bound to the input; unchanged concurrent retries save one batch, and changed content under the same ID is rejected. The browser retains only a fingerprint and UUID in tab-scoped session storage for up to 24 hours so an uncertain creation can recover after reload when the original input/policy is re-entered. No invoice contents are stored there. A confirmed successful creation clears the pending identity. API clients that omit the optional creation UUID intentionally create a new batch each time.
 
 ## Authentication and migration
 
@@ -148,7 +150,7 @@ The migration command is local-only and safe to repeat. This refactor updates so
 
 CSV imports contain the user's supplied data; scenario data is synthetic. Approval updates durable intent state only. No bank transfer, wallet signature, custody or automatic funds movement occurs.
 
-The engine measures the entire proposed batch, including approved items. Approval changes review state, so it need not reduce the original batch's risk. Currency conversion uses the batch's captured manual policy, not a live market quote. The per-intent limit applies at CSV/scenario admission and approval. Scenarios that exceed a custom policy limit cannot be saved as individually valid. Each batch has its own budget; no shared bank-account balance or cross-batch reservation exists. Converted outflows reserve whole USD cents with conservative rounding, excluding DELAY and BUFFER.
+The engine measures the entire proposed batch, including approved items. Approval changes review state, so it need not reduce the original batch's risk. Currency conversion uses the batch's captured manual policy, not a live market quote. The per-intent limit applies at CSV/scenario admission and approval. Scenarios that exceed a custom policy limit cannot be saved as individually valid. Custom-invoice department budgets also apply within the saved batch. Each batch has its own budget; no shared bank-account balance or cross-batch reservation exists. Converted outflows reserve whole USD cents with conservative rounding, excluding DELAY and BUFFER.
 
 Hash chains detect inconsistent content; they are not immutable storage or external signed attestations. The evidence package exposes each check separately. Infrastructure backups, external anchoring and live payment integrations are not claimed by these checks.
 

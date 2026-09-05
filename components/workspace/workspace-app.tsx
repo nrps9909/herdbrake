@@ -73,11 +73,14 @@ export function WorkspaceApp({
       ? (requestedView as WorkspaceView)
       : 'overview';
   const selectedId = params.get('run');
-  const data = useWorkspace(selectedId);
+  const data = useWorkspace(selectedId, user.userId);
   const [help, setHelp] = useState(false);
   const [search, setSearch] = useState(false);
   const [mobile, setMobile] = useState(false);
-  const [review, setReview] = useState<number | null>(null);
+  const [review, setReview] = useState<{
+    count: number;
+    ids?: string[];
+  } | null>(null);
   const go = (next: WorkspaceView, id = selectedId) => {
     if (data.busy) return;
     setMobile(false);
@@ -108,7 +111,7 @@ export function WorkspaceApp({
         throw new Error('請等候批次載入完成，再準備審核。');
       if (!data.run.risk.intents.some((intent) => intent.status === 'HELD'))
         throw new Error('此批次沒有待審核意圖。');
-      setReview(count);
+      setReview({ count });
     },
   });
   useEffect(() => {
@@ -172,7 +175,7 @@ export function WorkspaceApp({
             onOpen={openRun}
             onImport={() => go('import')}
             onLab={() => go('lab')}
-            onReview={() => setReview(5)}
+            onReview={() => setReview({ count: 5 })}
           />
         );
       case 'history':
@@ -183,7 +186,7 @@ export function WorkspaceApp({
             key={data.run?.runId ?? 'empty'}
             run={data.run}
             busy={data.busy}
-            onReview={() => setReview(5)}
+            onReview={(ids) => setReview({ count: ids?.length ?? 5, ids })}
             onImport={() => go('import')}
             onEvidence={() => go('evidence')}
           />
@@ -211,12 +214,13 @@ export function WorkspaceApp({
         return (
           <AgentPanel
             run={data.run}
+            settings={data.workspace.settings}
             busy={data.busy}
-            onRun={async (mode) => {
-              const saved = await data.runAgents(mode);
+            onRun={async (mode, custom) => {
+              const saved = await data.runAgents(mode, custom);
               go('agents', saved.runId);
             }}
-            onReview={() => setReview(5)}
+            onReview={() => setReview({ count: 5 })}
             onLedger={() => go('ledger')}
           />
         );
@@ -455,7 +459,8 @@ export function WorkspaceApp({
         <ReviewDialog
           key={data.run.auditHead}
           run={data.run}
-          initialCount={review}
+          initialCount={review.count}
+          initialIds={review.ids}
           busy={data.busy}
           onClose={() => setReview(null)}
           onRelease={data.release}

@@ -61,12 +61,23 @@ export function planRelease(
   count: number,
   prioritizeCritical: boolean,
   policy: RiskPolicy,
+  selectedIds?: string[],
+  departmentBudgetUsd?: number,
 ) {
   const held = intents.filter((intent) => intent.status === 'HELD');
-  const ids = prioritizeCritical
-    ? selectSafeRelease(intents, count, policy)
-    : held.slice(0, count).map((intent) => intent.id);
-  const candidates = ids.map((id) => held.find((intent) => intent.id === id)!);
+  const invalidSelection = Boolean(
+    selectedIds &&
+    (new Set(selectedIds).size !== selectedIds.length ||
+      selectedIds.some((id) => !held.some((intent) => intent.id === id))),
+  );
+  const ids =
+    selectedIds ??
+    (prioritizeCritical
+      ? selectSafeRelease(intents, count, policy)
+      : held.slice(0, count).map((intent) => intent.id));
+  const candidates = ids
+    .map((id) => held.find((intent) => intent.id === id))
+    .filter((intent) => intent !== undefined);
   const position = releasePosition(intents, policy);
   const outflow = candidates.reduce(
     (sum, intent) => sum + outflowCents(intent, policy),
@@ -77,7 +88,12 @@ export function planRelease(
     .filter((intent) => amountInUsd(intent, policy) > policy.maxIntentUsd)
     .map((intent) => intent.id);
   const withinFloor = afterCents <= position.budgetCents;
+  const departmentChecks =
+    departmentBudgetUsd === undefined
+      ? []
+      : departmentReleaseChecks(intents, ids, policy, departmentBudgetUsd);
   return {
+    invalidSelection,
     ids,
     candidates,
     approvedOutflow: position.approvedOutflow,
@@ -88,6 +104,69 @@ export function planRelease(
     shortfall: Math.max(0, afterCents - position.budgetCents) / 100,
     overLimitIds,
     withinFloor,
-    allowed: ids.length > 0 && withinFloor && !overLimitIds.length,
+    departmentChecks,
+    allowed:
+      !invalidSelection &&
+      ids.length > 0 &&
+      withinFloor &&
+      !overLimitIds.length &&
+      departmentChecks.every((check) => check.withinBudget),
   };
+}
+
+export function suggestRelease(
+  intents: PaymentIntent[],
+  policy: RiskPolicy,
+  departmentBudgetUsd?: number,
+) {
+  const position = releasePosition(intents, policy);
+  let remaining = position.budgetCents - position.approvedCents;
+  const result: string[] = [];
+  for (const id of selectSafeRelease(intents, intents.length, policy)) {
+    const intent = intents.find((item) => item.id === id)!;
+    const amount = outflowCents(intent, policy);
+    if (
+      result.length < 10 &&
+      amount <= remaining &&
+      amountInUsd(intent, policy) <= policy.maxIntentUsd &&
+      (departmentBudgetUsd === undefined ||
+        departmentReleaseChecks(
+          intents,
+          [...result, id],
+          policy,
+          departmentBudgetUsd,
+        ).every((check) => check.withinBudget))
+    ) {
+      result.push(id);
+      remaining -= amount;
+    }
+  }
+  return result;
+}
+
+export function departmentReleaseChecks(
+  intents: PaymentIntent[],
+  selectedIds: string[],
+  policy: RiskPolicy,
+  budgetUsd: number,
+) {
+  const totals = new Map<string, number>();
+  for (const intent of intents) {
+    const previous = totals.get(intent.entity) ?? 0;
+    totals.set(
+      intent.entity,
+      previous +
+        (intent.status === 'RELEASED' || selectedIds.includes(intent.id)
+          ? outflowCents(intent, policy)
+          : 0),
+    );
+  }
+  const [budgetN, budgetD] = decimalRatio(budgetUsd);
+  const budgetCents = Number((budgetN * 100n) / budgetD);
+  return [...totals].map(([entity, cents]) => ({
+    entity,
+    approvedOutflow: cents / 100,
+    budget: budgetCents / 100,
+    withinBudget: cents <= budgetCents,
+  }));
 }

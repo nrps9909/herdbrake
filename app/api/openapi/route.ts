@@ -65,7 +65,7 @@ export async function GET(request: Request) {
           },
           post: {
             summary:
-              'Run three independent model sessions or replay the bundled real inference, then save a held batch',
+              'Plan fixed demo invoices or 1–24 custom invoices across up to three department model sessions; all proposals remain held',
             parameters: [client],
             requestBody: jsonBody({
               type: 'object',
@@ -74,6 +74,19 @@ export async function GET(request: Request) {
                 mode: { type: 'string', enum: ['live', 'recorded'] },
                 policyRevision: { type: 'integer', minimum: 0 },
                 requestId: { type: 'string', format: 'uuid' },
+                csv: {
+                  type: 'string',
+                  description:
+                    'Live mode only. UTF-8 up to 32768 bytes; headers id,entity,destination,amount,currency,critical,description. Up to 3 departments, 8 invoices each.',
+                },
+                departmentBudgetUsd: {
+                  type: 'number',
+                  minimum: 0.01,
+                  multipleOf: 0.01,
+                  maximum: 1000000000,
+                  description:
+                    'Required with custom CSV; enforced cumulatively for each department within this batch.',
+                },
               },
             }),
             responses: {
@@ -180,6 +193,13 @@ export async function GET(request: Request) {
                 },
                 severity: { type: 'number', minimum: 0.1, maximum: 1 },
                 liquidityFloor: { type: 'integer', minimum: 50, maximum: 95 },
+                requestId: {
+                  type: 'string',
+                  format: 'uuid',
+                  description:
+                    'Reuse the same UUID and unchanged payload after transport failure to avoid duplicate creation.',
+                },
+                policyRevision: { type: 'integer', minimum: 0 },
               },
             }),
             responses: { '201': { description: 'Stored run' }, ...writeErrors },
@@ -201,6 +221,12 @@ export async function GET(request: Request) {
                     'UTF-8 up to 32768 bytes. Headers: entity,action,destination,amount,currency,critical. JSON request up to 40 KiB.',
                 },
                 policyRevision: { type: 'integer', minimum: 0 },
+                requestId: {
+                  type: 'string',
+                  format: 'uuid',
+                  description:
+                    'Optional idempotent creation identifier; bound to name, CSV and policy version.',
+                },
               },
             }),
             responses: {
@@ -239,6 +265,15 @@ export async function GET(request: Request) {
               required: ['count', 'confirmed', 'authorizationReason'],
               properties: {
                 count: { type: 'integer', minimum: 1, maximum: 10 },
+                intentIds: {
+                  type: 'array',
+                  minItems: 1,
+                  maxItems: 10,
+                  uniqueItems: true,
+                  items: { type: 'string' },
+                  description:
+                    'Exact held IDs to approve. Count must equal array length and expectedAuditHead is required. Omit to use priority/count selection.',
+                },
                 prioritizeCritical: { type: 'boolean', default: true },
                 confirmed: { type: 'boolean', const: true },
                 authorizationReason: {

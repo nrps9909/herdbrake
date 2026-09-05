@@ -30,7 +30,7 @@ export function LedgerPanel({
 }: {
   run: StoredRun | null;
   busy: boolean;
-  onReview: () => void;
+  onReview: (ids?: string[]) => void;
   onImport: () => void;
   onEvidence: () => void;
 }) {
@@ -39,6 +39,7 @@ export function LedgerPanel({
   const [amountSort, setAmountSort] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState('');
+  const [selected, setSelected] = useState<string[]>([]);
   if (!run)
     return (
       <EmptyState
@@ -62,6 +63,9 @@ export function LedgerPanel({
         : a.id.localeCompare(b.id),
     );
   const held = run.risk.intents.filter((item) => item.status === 'HELD').length;
+  const selectedIds = selected.filter((id) =>
+    run.risk.intents.some((i) => i.id === id && i.status === 'HELD'),
+  );
   const position = releasePosition(run.risk.intents, run.policy);
   const exportCsv = async () => {
     setDownloading(true);
@@ -110,10 +114,14 @@ export function LedgerPanel({
         <Button
           className="hb-primary"
           disabled={busy || !held}
-          onClick={onReview}
+          onClick={() => onReview(selectedIds.length ? selectedIds : undefined)}
         >
           <ShieldCheck size={15} />
-          {held ? '審核放行' : '已完成審核'}
+          {selectedIds.length
+            ? `審核所選 ${selectedIds.length} 筆`
+            : held
+              ? '審核放行'
+              : '已完成審核'}
         </Button>
       </SectionTitle>
       {downloadError && (
@@ -144,6 +152,23 @@ export function LedgerPanel({
         </div>
       </section>
       <div className="hb-card">
+        {selectedIds.length > 0 && (
+          <output className="hb-selection-toolbar">
+            <span>
+              已選 {selectedIds.length} / 10 筆
+              {selectedIds.some((id) => !rows.some((row) => row.id === id))
+                ? '（包含篩選外的項目）'
+                : ''}
+            </span>
+            <button
+              className="hb-link"
+              disabled={busy}
+              onClick={() => setSelected([])}
+            >
+              清除選取
+            </button>
+          </output>
+        )}
         <div className="hb-ledger-summary">
           <StatusBadge state={run.risk.state} />
           <strong>待審核 {held} 筆</strong>
@@ -191,6 +216,10 @@ export function LedgerPanel({
               <caption className="sr-only">{run.name} 付款意圖清單</caption>
               <thead>
                 <tr>
+                  <th scope="col">
+                    選取
+                    <span className="sr-only">選擇核准項目，最多十筆</span>
+                  </th>
                   <th scope="col">付款單位 / 識別碼</th>
                   <th scope="col">動作</th>
                   <th scope="col">目的地</th>
@@ -211,6 +240,26 @@ export function LedgerPanel({
               <tbody>
                 {rows.map((item) => (
                   <tr key={item.id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        aria-label={`選擇 ${item.id}`}
+                        checked={selectedIds.includes(item.id)}
+                        disabled={
+                          busy ||
+                          item.status !== 'HELD' ||
+                          (!selectedIds.includes(item.id) &&
+                            selectedIds.length >= 10)
+                        }
+                        onChange={(event) =>
+                          setSelected(
+                            event.target.checked
+                              ? [...selectedIds, item.id]
+                              : selectedIds.filter((id) => id !== item.id),
+                          )
+                        }
+                      />
+                    </td>
                     <td>
                       <strong>{item.entity}</strong>
                       {item.critical && (

@@ -4,6 +4,8 @@ import { csvTemplate } from '../../lib/import-csv.ts';
 import type { WorkspaceSettings } from '../../lib/policy.ts';
 import { scenarios } from '../../lib/herdbrake.ts';
 import type { StoredRun } from '../../lib/contracts.ts';
+import { verifyEvidence } from '../../lib/evidence-verifier.ts';
+import { agentCsvTemplate } from '../../lib/agent-input.ts';
 
 const origin = process.env.HERDBRAKE_TEST_ORIGIN ?? 'http://localhost:3000';
 if (!['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin).hostname))
@@ -76,6 +78,87 @@ void test('real Worker persists recorded AI provenance, retries one request and 
   ).json()) as { audit: { chainValid: boolean }; policyValid: boolean };
   assert.equal(evidence.audit.chainValid, true);
   assert.equal(evidence.policyValid, true);
+});
+
+void test('Worker preserves creation retries, exact selected authorization, and public independent verification', async () => {
+  const settings = (await (await request('/api/workspace')).json()) as {
+    settings: WorkspaceSettings;
+  };
+  const body = {
+    name: 'Exact selection HTTP ' + crypto.randomUUID(),
+    csv: csvTemplate,
+    policyRevision: settings.settings.revision,
+    requestId: crypto.randomUUID(),
+  };
+  const replies = await Promise.all([
+    request('/api/runs/import', body),
+    request('/api/runs/import', body),
+  ]);
+  for (const reply of replies)
+    assert.equal(reply.status, 201, await reply.clone().text());
+  const [run, retry] = await Promise.all(
+    replies.map((r) => r.json() as Promise<StoredRun>),
+  );
+  assert.deepEqual(run, retry);
+  assert.equal(
+    (await request('/api/runs/import', { ...body, name: 'Changed import' }))
+      .status,
+    409,
+  );
+  const selected = run.risk.intents[2].id;
+  const release = {
+    count: 1,
+    intentIds: [selected],
+    confirmed: true,
+    authorizationReason: 'HTTP exact selection acceptance',
+    expectedAuditHead: run.auditHead,
+  };
+  const result = await request(
+    `/api/runs/${run.runId}/release`,
+    release,
+    `explicit:${crypto.randomUUID()}`,
+  );
+  assert.equal(result.status, 200, await result.clone().text());
+  assert.deepEqual(
+    ((await result.json()) as { releasedIntentIds: string[] })
+      .releasedIntentIds,
+    [selected],
+  );
+  const evidence = await (
+    await request(`/api/runs/${run.runId}/evidence`)
+  ).json();
+  assert.ok(
+    Object.values(await verifyEvidence(evidence)).every(
+      (value) => value !== false,
+    ),
+  );
+  assert.equal(
+    (
+      await request('/api/agents', {
+        mode: 'recorded',
+        csv: agentCsvTemplate,
+        departmentBudgetUsd: 1000000,
+        requestId: crypto.randomUUID(),
+        policyRevision: settings.settings.revision,
+      })
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await request('/api/agents', {
+        mode: 'live',
+        csv: 'invalid',
+        departmentBudgetUsd: 1000000,
+        requestId: crypto.randomUUID(),
+        policyRevision: settings.settings.revision,
+      })
+    ).status,
+    400,
+  );
+  const independent = await fetch(new URL('/verify', origin));
+  assert.equal(independent.status, 200);
+  assert.match(await independent.text(), /獨立驗證證據檔/);
 });
 void test('local Worker health and all six scenario routes', async () => {
   assert.equal((await request('/api/health')).status, 200);

@@ -11,7 +11,7 @@ import {
 import type { StoredRun } from './contracts.ts';
 import { amountInUsd } from './herdbrake.ts';
 import { parsePolicy } from './policy.ts';
-import { releasePosition } from './release-plan.ts';
+import { departmentReleaseChecks, releasePosition } from './release-plan.ts';
 
 // This verifies internal consistency, not an external signature or the actor's identity.
 export async function verifyEvidence(payload: unknown) {
@@ -140,6 +140,13 @@ export async function verifyEvidence(payload: unknown) {
     (await safely(
       () =>
         releasePosition(run.risk.intents, run.policy).withinFloor &&
+        (run.aiTrace?.input === undefined ||
+          departmentReleaseChecks(
+            run.risk.intents,
+            [],
+            run.policy,
+            run.aiTrace.input.departmentBudgetUsd,
+          ).every((check) => check.withinBudget)) &&
         run.risk.intents.every(
           (i) =>
             i.status !== 'RELEASED' ||
@@ -163,9 +170,18 @@ export async function verifyEvidence(payload: unknown) {
             !trace.sessions.every(
               (s) =>
                 stableStringify(
-                  parseAgentDecisions(JSON.parse(s.response), s.agent),
+                  parseAgentDecisions(
+                    JSON.parse(s.response),
+                    s.agent,
+                    trace.input?.invoices,
+                  ),
                 ) === stableStringify(s.decisions),
             )
+          )
+            return false;
+          if (
+            trace.version === 2 &&
+            stableStringify(trace.input?.policy) !== stableStringify(run.policy)
           )
             return false;
           const proposals = new Map(agentIntents(trace).map((i) => [i.id, i]));

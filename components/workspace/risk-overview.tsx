@@ -165,8 +165,12 @@ export function RiskOverview({
               </div>
               <div className="hb-active-summary">
                 <p className="hb-muted">
-                  {run.source === 'ai' ? 'AI 提案 · 合成發票' : run.source === 'import' ? '你的付款資料' : '模擬情境資料'} ·{' '}
-                  {run.intentCount} 筆意圖
+                  {run.source === 'ai'
+                    ? `AI 提案 · ${run.aiTrace?.version === 2 ? '自訂發票' : '合成發票'}`
+                    : run.source === 'import'
+                      ? '你的付款資料'
+                      : '模擬情境資料'}{' '}
+                  · {run.intentCount} 筆意圖
                 </p>
                 <h3>
                   {run.risk.state === 'CRITICAL'

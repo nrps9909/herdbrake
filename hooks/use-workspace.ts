@@ -5,13 +5,14 @@ import type { ReleaseInput, RunInput, StoredRun } from '@/lib/contracts';
 import type { RiskPolicy, WorkspaceSettings } from '@/lib/policy';
 import type { RunList } from '@/lib/workspace-types';
 import { ApiError } from '@/lib/errors';
+import { mutationRecovery } from '@/lib/mutation-recovery';
 export type WorkspaceData = {
   settings: WorkspaceSettings;
   history: Array<{ revision: number; policy: RiskPolicy; createdAt: string }>;
 };
 export const errorText = (error: unknown) =>
   error instanceof Error ? error.message : '連線失敗，請稍後重試。';
-export function useWorkspace(selectedId: string | null) {
+export function useWorkspace(selectedId: string | null, ownerId: string) {
   const [workspace, setWorkspace] = useState<WorkspaceData | null>(null);
   const [list, setList] = useState<RunList | null>(null);
   const [run, setRun] = useState<StoredRun | null>(null);
@@ -29,9 +30,22 @@ export function useWorkspace(selectedId: string | null) {
   const pending = useRef<{ signature: string; input: ReleaseInput } | null>(
     null,
   );
-  const agentPending = useRef<{ signature: string; requestId: string } | null>(
-    null,
-  );
+  const recovery = useRef<{
+    ownerId: string;
+    api: ReturnType<typeof mutationRecovery>;
+  } | null>(null);
+  const recoveryApi = () => {
+    if (recovery.current?.ownerId !== ownerId) {
+      let storage: Storage | undefined;
+      try {
+        storage = window.sessionStorage;
+      } catch {
+        /* Browser may disable storage. */
+      }
+      recovery.current = { ownerId, api: mutationRecovery(ownerId, storage) };
+    }
+    return recovery.current.api;
+  };
   useEffect(() => {
     const controller = new AbortController();
     const version = ++generation.current;
@@ -98,7 +112,13 @@ export function useWorkspace(selectedId: string | null) {
   };
   const create = async (input: RunInput) =>
     perform(async () => {
-      const saved = await assuranceApi.create(input);
+      if (!workspace) throw new Error('請等候政策載入。');
+      const values = { ...input, policyRevision: workspace.settings.revision };
+      const saved = await assuranceApi.create({
+        ...values,
+        requestId: await recoveryApi().requestId('scenario', values),
+      });
+      recoveryApi().complete('scenario');
       setRun(saved);
       pending.current = null;
       // A secondary list read must not turn a confirmed save into a duplicate submission.
@@ -118,8 +138,12 @@ export function useWorkspace(selectedId: string | null) {
       const saved = await apiRequest<StoredRun>('/api/runs/import', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(input),
+        body: JSON.stringify({
+          ...input,
+          requestId: await recoveryApi().requestId('import', input),
+        }),
       });
+      recoveryApi().complete('import');
       setRun(saved);
       pending.current = null;
       try {
@@ -129,12 +153,18 @@ export function useWorkspace(selectedId: string | null) {
       }
       return saved;
     }, '批次已匯入，風險結果與原始資料均已儲存。');
-  const runAgents = (mode: 'live' | 'recorded') =>
+  const runAgents = (
+    mode: 'live' | 'recorded',
+    custom?: { csv: string; departmentBudgetUsd: number },
+  ) =>
     perform(async () => {
       if (!workspace) throw new Error('請等候政策載入。');
-      const signature = `${mode}:${workspace.settings.revision}`;
-      if (agentPending.current?.signature !== signature)
-        agentPending.current = { signature, requestId: crypto.randomUUID() };
+      const values = {
+        mode,
+        policyRevision: workspace.settings.revision,
+        ...custom,
+      };
+      const requestId = await recoveryApi().requestId('ai', values);
       const saved = await apiRequest<StoredRun>(
         '/api/agents',
         {
@@ -143,12 +173,13 @@ export function useWorkspace(selectedId: string | null) {
           body: JSON.stringify({
             mode,
             policyRevision: workspace.settings.revision,
-            requestId: agentPending.current.requestId,
+            requestId,
+            ...custom,
           }),
         },
         200_000,
       );
-      agentPending.current = null;
+      recoveryApi().complete('ai');
       pending.current = null;
       setRun(saved);
       try {

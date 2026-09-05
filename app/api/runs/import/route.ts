@@ -11,6 +11,7 @@ export function POST(request: Request) {
       name: body.name as string,
       csv: body.csv as string,
       policyRevision: body.policyRevision as number,
+      requestId: body.requestId as string | undefined,
     });
     return json(result, { status: 201 });
   }, '無法匯入付款批次。');

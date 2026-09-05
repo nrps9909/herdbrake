@@ -13,6 +13,8 @@ import { assuranceApi } from '@/lib/client-api';
 import { presentAuditEvent } from '@/lib/audit-presentation';
 import { EmptyState, SectionTitle, saveFile } from './shared';
 import { errorText } from '@/hooks/use-workspace';
+import { EvidenceVerifier } from './evidence-verifier';
+import type { verifyEvidence } from '@/lib/evidence-verifier';
 type Evidence = {
   audit: { chainValid: boolean };
   commitmentsValid: boolean;
@@ -36,19 +38,28 @@ export function EvidencePanel({
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
+  const [verification, setVerification] = useState<Awaited<
+    ReturnType<typeof verifyEvidence>
+  > | null>(null);
   if (!run)
     return (
-      <EmptyState
-        title="建立批次後即可查看證據"
-        description="每次評估與審核都會留下事件紀錄，可驗證並完整下載。"
-        onAction={onImport}
-      />
+      <>
+        <EvidenceVerifier />
+        <EmptyState
+          title="建立批次後即可查看證據"
+          description="每次評估與審核都會留下事件紀錄，可驗證並完整下載。"
+          onAction={onImport}
+        />
+      </>
     );
   const verify = async (download = false) => {
     setChecking(true);
     setError('');
     try {
       const value = (await assuranceApi.evidence(run.runId)) as Evidence;
+      const { verifyEvidence: recheck } =
+        await import('@/lib/evidence-verifier');
+      setVerification(await recheck(value));
       setEvidence(value);
       if (download)
         saveFile(
@@ -63,11 +74,15 @@ export function EvidencePanel({
     }
   };
   const checks = [
-    ['事件鏈完整性', evidence?.audit.chainValid],
-    ['原始付款資料', evidence?.commitmentsValid],
-    ['審核狀態一致性', evidence?.releaseStateValid],
-    ['政策快照一致性', evidence?.policyValid],
-    ['累計核准額度', evidence?.releasePolicyValid],
+    ['資料格式與範圍', verification?.schema],
+    ['證據包指紋', verification?.packageHash],
+    ['事件鏈完整性', verification?.auditChain],
+    ['原始付款資料', verification?.originalIntentCommitments],
+    ['審核狀態一致性', verification?.releaseState],
+    ['政策快照一致性', verification?.policySnapshot],
+    ['累計核准與部門額度', verification?.releasePolicy],
+    ['模型原文與發票映射', verification?.modelRecording],
+    ['伺服器結果交叉比對', verification?.reportedChecks],
   ] as const;
   return (
     <>
@@ -132,13 +147,21 @@ export function EvidencePanel({
           </div>
           <div className="hb-card-body">
             <div className="hb-help-list">
-              <p>重新讀取資料庫並比對雜湊、付款狀態及政策快照。</p>
+              <p>
+                重新讀取資料庫，再於此瀏覽器重算雜湊、付款狀態、模型來源及政策額度。
+              </p>
             </div>
             {checks.map(([label, valid]) => (
               <div className="hb-integrity-row" key={label}>
                 <span>{label}</span>
                 <strong className={valid === false ? 'invalid' : ''}>
-                  {valid === undefined ? '尚未驗證' : valid ? '通過' : '異常'}
+                  {valid === undefined
+                    ? '尚未驗證'
+                    : valid === null
+                      ? '不適用'
+                      : valid
+                        ? '通過'
+                        : '異常'}
                 </strong>
               </div>
             ))}
@@ -167,6 +190,7 @@ export function EvidencePanel({
               disabled={busy || checking}
               onClick={() => {
                 setEvidence(null);
+                setVerification(null);
                 void onReplay().catch(() => undefined);
               }}
             >
@@ -179,6 +203,7 @@ export function EvidencePanel({
           </div>
         </aside>
       </div>
+      <EvidenceVerifier />
     </>
   );
 }

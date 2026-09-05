@@ -4,7 +4,11 @@ import type { AgentTrace } from '../agent-workflow.ts';
 import type { RiskPolicy } from '../policy.ts';
 import { createWorkspaceRepository } from './workspace-repository.ts';
 import { previewImport } from '../import-csv.ts';
-import { planRelease, releasePosition } from '../release-plan.ts';
+import {
+  departmentReleaseChecks,
+  planRelease,
+  releasePosition,
+} from '../release-plan.ts';
 import { ApiError } from '../errors.ts';
 import {
   evaluateRisk,
@@ -24,6 +28,7 @@ import {
   parseRunInput,
   parseReleaseInput,
   validateRunId,
+  parseCreationIdentity,
 } from '../contracts.ts';
 import type {
   RunInput,
@@ -116,13 +121,32 @@ export function createAssuranceRepository(
       policyRevision: number;
       aiTrace?: AgentTrace;
       requestId?: string;
+      creationRequestHash?: string;
     },
   ): Promise<StoredRun> {
     const input = parseRunInput(value);
-    const runId = `RUN-${imported?.requestId ?? crypto.randomUUID()}`;
+    const runId = `RUN-${imported?.requestId ?? input.requestId ?? crypto.randomUUID()}`;
     validateRunId(runId);
+    const creationRequestHash =
+      imported?.creationRequestHash ??
+      (await sha256Hex(
+        stableStringify({
+          source: 'scenario',
+          scenarioId: input.scenarioId,
+          severity: input.severity,
+          liquidityFloor: input.liquidityFloor,
+          policyRevision: input.policyRevision ?? null,
+        }),
+      ));
+    const replay = await findCreationReplay(runId, creationRequestHash);
+    if (replay) return replay;
     const createdAt = new Date().toISOString();
     const settings = await workspace.getSettings();
+    if (
+      input.policyRevision !== undefined &&
+      input.policyRevision !== settings.revision
+    )
+      throw new ConflictError('政策已更新，請重新載入後再執行。');
     const policy = imported?.policy ?? {
       ...settings.policy,
       liquidityFloor: input.liquidityFloor,
@@ -138,7 +162,9 @@ export function createAssuranceRepository(
       scenarios.find((item) => item.id === input.scenarioId)!.shortName +
         '壓力測試';
     const risk = evaluateRisk(
-      imported?.intents ?? runRiskEngine(input).intents,
+      (imported?.intents ?? runRiskEngine(input).intents)
+        .slice()
+        .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)),
       input.liquidityFloor,
       policy,
     );
@@ -166,6 +192,7 @@ export function createAssuranceRepository(
         detail: {
           scenarioId: input.scenarioId,
           ownerId,
+          creationRequestHash,
           name,
           policyRevision,
           policy,
@@ -213,52 +240,60 @@ export function createAssuranceRepository(
           createdAt,
         ),
       );
-    await database.batch([
-      statement(
-        'INSERT INTO stress_runs (id, scenario_id, severity, liquidity_floor, state, reason_code, directional_agreement, destination_concentration, proposed_outflow, projected_buffer, created_at, updated_at, revision, owner_id, name, source, policy_json, policy_revision, intent_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        runId,
-        input.scenarioId,
-        input.severity,
-        input.liquidityFloor,
-        risk.state,
-        risk.reasonCode,
-        risk.directionalAgreement,
-        risk.destinationConcentration,
-        risk.proposedOutflow,
-        risk.projectedBuffer,
-        createdAt,
-        createdAt,
-        auditEvents.length,
-        ownerId,
-        name,
-        source,
-        JSON.stringify(policy),
-        policyRevision,
-        risk.intents.length,
-      ),
-      ...risk.intents.map((intent) =>
+    try {
+      await database.batch([
         statement(
-          'INSERT INTO payment_intents (run_id, intent_id, entity, action, destination, amount, currency, individual_policy, status, critical, nonce, commitment, released_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)',
+          'INSERT INTO stress_runs (id, scenario_id, severity, liquidity_floor, state, reason_code, directional_agreement, destination_concentration, proposed_outflow, projected_buffer, created_at, updated_at, revision, owner_id, name, source, policy_json, policy_revision, intent_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
           runId,
-          intent.id,
-          intent.entity,
-          intent.action,
-          intent.destination,
-          intent.amount,
-          intent.currency,
-          intent.individualPolicy,
-          intent.status,
-          Number(intent.critical),
-          intent.nonce,
-          commitments[intent.id],
+          input.scenarioId,
+          input.severity,
+          input.liquidityFloor,
+          risk.state,
+          risk.reasonCode,
+          risk.directionalAgreement,
+          risk.destinationConcentration,
+          risk.proposedOutflow,
+          risk.projectedBuffer,
+          createdAt,
+          createdAt,
+          auditEvents.length,
+          ownerId,
+          name,
+          source,
+          JSON.stringify(policy),
+          policyRevision,
+          risk.intents.length,
         ),
-      ),
-      ...auditEvents.map((event, index) =>
-        auditStatement(runId, event, index + 1),
-      ),
-    ]);
+        ...risk.intents.map((intent) =>
+          statement(
+            'INSERT INTO payment_intents (run_id, intent_id, entity, action, destination, amount, currency, individual_policy, status, critical, nonce, commitment, released_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)',
+            runId,
+            intent.id,
+            intent.entity,
+            intent.action,
+            intent.destination,
+            intent.amount,
+            intent.currency,
+            intent.individualPolicy,
+            intent.status,
+            Number(intent.critical),
+            intent.nonce,
+            commitments[intent.id],
+          ),
+        ),
+        ...auditEvents.map((event, index) =>
+          auditStatement(runId, event, index + 1),
+        ),
+      ]);
+    } catch (error) {
+      const winner = await findCreationReplay(runId, creationRequestHash);
+      if (winner) return winner;
+      throw error;
+    }
     return {
-      ...input,
+      scenarioId: input.scenarioId,
+      severity: input.severity,
+      liquidityFloor: input.liquidityFloor,
       runId,
       name,
       source,
@@ -273,6 +308,17 @@ export function createAssuranceRepository(
       revision: auditEvents.length,
       auditEvents,
     };
+  }
+
+  async function findCreationReplay(runId: string, requestHash: string) {
+    const run = await getStoredRun(runId);
+    if (!run) return null;
+    if (
+      (run.auditEvents[0]?.detail as { creationRequestHash?: string })
+        ?.creationRequestHash !== requestHash
+    )
+      throw new ConflictError('此請求識別碼已用於其他資料，請重新建立請求。');
+    return run;
   }
 
   async function getStoredRun(runId: string): Promise<StoredRun | null> {
@@ -392,8 +438,16 @@ export function createAssuranceRepository(
       input.count,
       input.prioritizeCritical,
       stored.policy,
+      input.intentIds,
+      stored.aiTrace?.input?.departmentBudgetUsd,
     );
     const ids = plan.ids;
+    if (plan.invalidSelection)
+      throw new ApiError(
+        '所選付款意圖不存在或已完成審核，請重新載入。',
+        409,
+        'HB_STALE_SELECTION',
+      );
     if (!ids.length) throw new ConflictError('No held intents remain.');
     if (plan.overLimitIds.length)
       throw new ApiError(
@@ -407,9 +461,16 @@ export function createAssuranceRepository(
         422,
         'HB_LIQUIDITY_FLOOR',
       );
+    if (plan.departmentChecks.some((check) => !check.withinBudget))
+      throw new ApiError(
+        '累計核准金額將超過部門預算，請調整核准項目。',
+        422,
+        'HB_DEPARTMENT_LIMIT',
+      );
     const createdAt = new Date().toISOString();
     const detail = {
       releasedIntentIds: ids,
+      selection: input.intentIds ? 'explicit' : 'priority-order',
       prioritizeCritical: input.prioritizeCritical,
       authorization: 'human-confirmed',
       authorizedBy: ownerId,
@@ -421,6 +482,9 @@ export function createAssuranceRepository(
         projectedBuffer: plan.projectedBuffer,
         liquidityFloor: stored.policy.liquidityFloor,
         remainingBudget: plan.remainingBudget,
+        ...(plan.departmentChecks.length
+          ? { departmentChecks: plan.departmentChecks }
+          : {}),
       },
     };
     const event = await makeAuditEvent(
@@ -576,6 +640,13 @@ export function createAssuranceRepository(
       releaseStateValid: verifyReleaseState(stored),
       releasePolicyValid:
         releasePosition(stored.risk.intents, stored.policy).withinFloor &&
+        (stored.aiTrace?.input === undefined ||
+          departmentReleaseChecks(
+            stored.risk.intents,
+            [],
+            stored.policy,
+            stored.aiTrace.input.departmentBudgetUsd,
+          ).every((check) => check.withinBudget)) &&
         !stored.risk.intents.some(
           (intent) =>
             intent.status === 'RELEASED' &&
@@ -598,23 +669,34 @@ export function createAssuranceRepository(
     trace: AgentTrace,
     policyRevision: number,
     requestId: string,
+    providedRequestHash?: string,
   ) {
     validateRunId(`RUN-${requestId}`);
-    const existing = await getStoredRun(`RUN-${requestId}`);
-    if (existing) {
-      if (
-        existing.source !== 'ai' ||
-        existing.aiTrace?.mode !== trace.mode ||
-        existing.policyRevision !== policyRevision
-      )
-        throw new ConflictError('此請求識別碼已用於其他 AI 提案。');
-      return existing;
-    }
+    const creationRequestHash =
+      providedRequestHash ??
+      (await sha256Hex(
+        stableStringify({
+          source: 'ai',
+          mode: trace.mode,
+          policyRevision,
+          input: trace.input ?? null,
+        }),
+      ));
+    const existing = await findCreationReplay(
+      `RUN-${requestId}`,
+      creationRequestHash,
+    );
+    if (existing) return existing;
     if (!(await verifyAgentTrace(trace)))
       throw new ApiError('AI 推論紀錄驗證失敗。', 422, 'HB_AI_INVALID');
     const settings = await workspace.getSettings();
     if (settings.revision !== policyRevision)
       throw new ConflictError('政策已更新，請重新載入後再執行。');
+    if (
+      trace.version === 2 &&
+      stableStringify(trace.input?.policy) !== stableStringify(settings.policy)
+    )
+      throw new ConflictError('AI 輸入政策與目前工作區版本不同，請重新規劃。');
     try {
       return await createStressRun(
         {
@@ -623,24 +705,23 @@ export function createAssuranceRepository(
           liquidityFloor: settings.policy.liquidityFloor,
         },
         {
-          name: `AI 付款協作 · ${trace.mode === 'live' ? '即時推論' : '推論紀錄重現'}`,
+          name: `AI ${trace.version === 2 ? '自訂發票' : '付款協作'} · ${trace.mode === 'live' ? '即時推論' : '推論紀錄重現'}`,
           intents: agentIntents(trace),
           policy: settings.policy,
           policyRevision,
           aiTrace: trace,
           requestId,
+          creationRequestHash,
         },
       );
     } catch (error) {
       // Concurrent retries may finish inference together. The run primary key
       // makes one transaction win; the loser returns that owned saved result.
-      const winner = await getStoredRun(`RUN-${requestId}`);
-      if (
-        winner?.source === 'ai' &&
-        winner.aiTrace?.mode === trace.mode &&
-        winner.policyRevision === policyRevision
-      )
-        return winner;
+      const winner = await findCreationReplay(
+        `RUN-${requestId}`,
+        creationRequestHash,
+      );
+      if (winner) return winner;
       throw error;
     }
   }
@@ -649,11 +730,27 @@ export function createAssuranceRepository(
     name: string;
     csv: string;
     policyRevision: number;
+    requestId?: string;
   }) {
     const name = typeof input.name === 'string' ? input.name.trim() : '';
     if (!name || name.length > 80)
       throw new ApiError('批次名稱需為 1 至 80 字元。');
     if (typeof input.csv !== 'string') throw new ApiError('請選擇 CSV 檔案。');
+    parseCreationIdentity(input);
+    const requestId = input.requestId ?? crypto.randomUUID();
+    const creationRequestHash = await sha256Hex(
+      stableStringify({
+        source: 'import',
+        name,
+        csv: input.csv,
+        policyRevision: input.policyRevision,
+      }),
+    );
+    const existing = await findCreationReplay(
+      `RUN-${requestId}`,
+      creationRequestHash,
+    );
+    if (existing) return existing;
     const settings = await workspace.getSettings();
     if (input.policyRevision !== settings.revision)
       throw new ConflictError('政策已更新，請重新預覽後再匯入。');
@@ -673,6 +770,8 @@ export function createAssuranceRepository(
         intents: preview.intents,
         policy: settings.policy,
         policyRevision: settings.revision,
+        requestId,
+        creationRequestHash,
       },
     );
   }
@@ -730,6 +829,7 @@ export function createAssuranceRepository(
   }
 
   return {
+    findCreationReplay,
     createAgentRun,
     importRun,
     listRuns,
