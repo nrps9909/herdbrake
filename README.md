@@ -6,13 +6,21 @@
 
 讓三個部門的 AI 先提出付款決策，再由確定性風控與人工核准共同把關。模型不能直接付款，也不能改寫金額、目的地或政策。
 
-- [技術文件與來源揭露](docs/TECHNICAL.md) · [評審操作指南](docs/DEMO.md) · [提交資料](docs/SUBMISSION.md)
+- [技術文件與來源揭露](docs/TECHNICAL.md) · [評審操作指南](docs/DEMO.md) · [三分鐘展示與問答](docs/JUDGES.md) · [提交資料](docs/SUBMISSION.md)
 - 真實 Qwen 推論、合成發票、可重現紀錄；後端具備帳號隔離、D1 交易、政策版本、累計核准限制與證據匯出。
 - 未串接真實銀行或區塊鏈資金移轉；不宣稱已取得真實客戶成效。
 
 [![Quality checks](https://github.com/nrps9909/herdbrake/actions/workflows/check.yml/badge.svg)](https://github.com/nrps9909/herdbrake/actions/workflows/check.yml)
 
 ![HerdBrake 實際介面](docs/media/product.png)
+
+## 誰會需要這個工作區
+
+我們的目標使用者假設是管理多部門付款的財務主管：部門各自提交的付款都低於單筆上限，合併後卻可能突破同一批次的現金底線。HerdBrake 將模型提案、政策快照、人工核准與累計金額放在一起，讓審核者看見每次核准的影響。這個使用者需求仍待實際訪談與導入驗證。
+
+公開示範使用 US$32m 期初資金、90% 保留底線，故可核准額度為 US$3.2m。同一份真實模型紀錄提議付款 US$5.4m；先核准三筆關鍵薪資 US$2.7m 後，剩餘額度是 US$0.5m，再要求新增 US$1.8m 會被後端拒絕。這是合成案例中的限制驗證，沒有宣稱節省真實資金或工時。原始數據見 [驗收證據](docs/acceptance/demo-evidence-2026-09-06.json)。
+
+AI 目前處理固定的十二張合成發票；自訂 CSV 走相同風控、審核與證據流程，**不會呼叫模型替匯入發票作決策**。完整功能界線與既有產品比較見 [評審說明](docs/JUDGES.md)。
 
 ## 評審快速啟動
 
@@ -62,7 +70,7 @@ Open `http://localhost:3000/` and select **登入工作區**. The official Sites
 ## Validation
 
 ```bash
-npm run check                 # lint + strict types + 55 tests + production build
+npm run check                 # lint + strict types + 61 tests + production build
 npm run db:migrate:local
 npm run test:integration      # owns a local server on port 4317; stops it afterward
 ```
@@ -70,6 +78,14 @@ npm run test:integration      # owns a local server on port 4317; stops it after
 Stop the existing development server before using the self-contained integration runner. For an already-running **development** server, use `npm run test:api`. Override only a local address with `HERDBRAKE_TEST_ORIGIN`. Seven HTTP integration suites test AI provenance and retries, all six scenarios, real D1 concurrency, authentication, header-spoof rejection, CSRF protection, imports, policy conflicts, search and evidence/CSV downloads. They create local synthetic records and one unchanged-content policy revision; they never target a hosted Site.
 
 The unit/repository tests execute actual SQL against Node's built-in SQLite with transaction rollback, including legacy migration, per-account isolation, policy races, tampering, CSV edge cases and mutation limits. `.github/workflows/check.yml` installs the lockfile and runs the same checks using [GitHub's official actions](https://github.com/actions/setup-node). [The published source passed GitHub CI](https://github.com/nrps9909/herdbrake/actions/runs/33984471381), including all 55 unit/SQL tests, seven HTTP integration tests and the production build.
+
+The subsequent submission audit adds six offline evidence regression tests (61 total). The v0.2.0 video records the earlier 55-test version; its UI and demonstrated approval behavior remain unchanged. To verify a downloaded evidence package without running the server:
+
+```bash
+node --experimental-strip-types scripts/verify-evidence.ts docs/acceptance/demo-evidence-2026-09-06.json
+```
+
+This independently checks structure, hashes, audit continuity, commitments, policy snapshots, authorized release state, cumulative limits, model provenance and the server's reported checks. It detects internal inconsistencies, including changes followed by recomputing the outer hash; it cannot authenticate a package whose entire history has been rewritten consistently without a trusted external signature or checkpoint.
 
 The [September 5 acceptance](docs/acceptance/2026-09-05.md) covers the public page and seven original workspace views on desktop and at 390px mobile width, plus a 768px tablet overview. The [September 6 acceptance](docs/acceptance/2026-09-06.md) adds actual AI inference, the eighth workspace view, dependency security updates and the final demo. See [current SITCON readiness](docs/SITCON-readiness-2026-09-06.md) and [submission materials](docs/SUBMISSION.md). Viewport simulation does not establish physical-device or hosted acceptance.
 

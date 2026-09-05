@@ -15,7 +15,7 @@
 | 贊助商技術 | OpenAI Codex 用於開發、Sites 開發框架與登入；財務提案執行模型為本機 Qwen，不宣稱 OpenAI API 推論 |
 | Bounty | 目前沒有區塊鏈整合證據，不主張國泰 Bounty 資格 |
 | 展示網址 | 選填；僅填寫經匿名驗證可開啟的線上網址 |
-| YouTube | 待影片製作與指定頻道上傳完成後填入 |
+| YouTube | 影片已完成；待指定頻道上傳並驗證可觀看後填入 |
 
 ## 問題與解法摘要
 
@@ -23,7 +23,9 @@
 
 ## 影片
 
-兩分鐘以內，內容涵蓋問題、實際模型、聚合風險、人工核准、後端拒絕與稽核證據。完整操作與數字見 [DEMO.md](DEMO.md)。MP4 與繁體字幕備份將隨 [v0.2.0 Release](https://github.com/nrps9909/herdbrake/releases/tag/v0.2.0) 提供；GitHub 影片檔不能代替官方必填的 YouTube 連結。
+兩分鐘以內，內容涵蓋問題、實際模型、聚合風險、人工核准、後端拒絕與稽核證據。完整操作與數字見 [DEMO.md](DEMO.md)。MP4 與繁體字幕備份已於 [v0.2.0 Release](https://github.com/nrps9909/herdbrake/releases/tag/v0.2.0) 公開；GitHub 影片檔不能代替官方必填的 YouTube 連結。影片記錄 55 個測試的 v0.2.0；後續離線驗證修補增加六個測試，主流程與影片數字不變。
+
+完整核對結果、未完成的外部事項與評分評估見 [最後提交驗收](FINAL-AUDIT-2026-09-06.md)。三分鐘現場操作順序與回答準備見 [JUDGES.md](JUDGES.md)。
 
 ## 公開揭露
 
