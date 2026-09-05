@@ -1,0 +1,651 @@
+{
+  "schemaVersion": "2.0",
+  "generatedAt": "2026-09-05T18:39:54.221Z",
+  "product": "HerdBrake Taiwan",
+  "run": {
+    "runId": "RUN-2c7e12e7-ed4b-49b1-9d19-c52dfad93f81",
+    "name": "AI 付款協作 · 即時推論",
+    "source": "ai",
+    "aiTrace": {
+      "version": 1,
+      "mode": "live",
+      "provider": "ollama",
+      "scenario": "shared-deadline",
+      "recordedAt": "2026-09-05T18:37:57.063Z",
+      "sessions": [
+        {
+          "agent": "台北營運",
+          "prompt": "你是台北營運的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-1-1\",\"entity\":\"台北營運\",\"destination\":\"PAYROLL-1\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-1-2\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-1-3\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-1-4\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+          "decisions": [
+            {
+              "invoiceId": "AI-1-1",
+              "action": "PAY",
+              "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+            },
+            {
+              "invoiceId": "AI-1-2",
+              "action": "PAY",
+              "reason": "支付兩筆供應商款項後剩餘預算不足，其餘延遲"
+            },
+            {
+              "invoiceId": "AI-1-3",
+              "action": "DELAY",
+              "reason": "預算已用盡且非關鍵項目，延遲將產生違約金"
+            },
+            {
+              "invoiceId": "AI-1-4",
+              "action": "DELAY",
+              "reason": "預算已用盡且非關鍵項目，延遲將產生違約金"
+            }
+          ],
+          "response": "{\"decisions\":[{\"invoiceId\":\"AI-1-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-1-2\",\"action\":\"PAY\",\"reason\":\"支付兩筆供應商款項後剩餘預算不足，其餘延遲\"},{\"invoiceId\":\"AI-1-3\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"},{\"invoiceId\":\"AI-1-4\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"}]}",
+          "model": "qwen3.5:4b",
+          "completedAt": "2026-09-05T18:37:13.168Z",
+          "durationMs": 33781,
+          "inputTokens": 394,
+          "outputTokens": 129
+        },
+        {
+          "agent": "新竹研發",
+          "prompt": "你是新竹研發的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-2-1\",\"entity\":\"新竹研發\",\"destination\":\"PAYROLL-2\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-2-2\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-2-3\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-2-4\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+          "decisions": [
+            {
+              "invoiceId": "AI-2-1",
+              "action": "PAY",
+              "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+            },
+            {
+              "invoiceId": "AI-2-2",
+              "action": "PAY",
+              "reason": "避免違約金並維持供應商關係，符合預算上限"
+            },
+            {
+              "invoiceId": "AI-2-3",
+              "action": "DELAY",
+              "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+            },
+            {
+              "invoiceId": "AI-2-4",
+              "action": "DELAY",
+              "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+            }
+          ],
+          "response": "{\"decisions\":[{\"invoiceId\":\"AI-2-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-2-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-2-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-2-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}]}",
+          "model": "qwen3.5:4b",
+          "completedAt": "2026-09-05T18:37:36.618Z",
+          "durationMs": 23450,
+          "inputTokens": 394,
+          "outputTokens": 128
+        },
+        {
+          "agent": "台中供應鏈",
+          "prompt": "你是台中供應鏈的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-3-1\",\"entity\":\"台中供應鏈\",\"destination\":\"PAYROLL-3\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-3-2\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-3-3\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-3-4\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+          "decisions": [
+            {
+              "invoiceId": "AI-3-1",
+              "action": "PAY",
+              "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+            },
+            {
+              "invoiceId": "AI-3-2",
+              "action": "PAY",
+              "reason": "避免違約金並維持供應商關係，符合預算上限"
+            },
+            {
+              "invoiceId": "AI-3-3",
+              "action": "DELAY",
+              "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+            },
+            {
+              "invoiceId": "AI-3-4",
+              "action": "DELAY",
+              "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+            }
+          ],
+          "response": "{\"decisions\":[{\"invoiceId\":\"AI-3-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-3-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-3-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-3-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}]}",
+          "model": "qwen3.5:4b",
+          "completedAt": "2026-09-05T18:37:57.063Z",
+          "durationMs": 20445,
+          "inputTokens": 394,
+          "outputTokens": 128
+        }
+      ],
+      "contentHash": "5f552000b0df81d5b5c3f73d554093da5544510fd67ad59bbb291f3a28c69446"
+    },
+    "policy": {
+      "liquidityFloor": 75,
+      "openingLiquidity": 32000000,
+      "twdPerUsd": 32,
+      "usdcUsd": 1,
+      "herdThreshold": 70,
+      "concentrationThreshold": 50,
+      "maxIntentUsd": 1000000
+    },
+    "policyRevision": 10,
+    "intentCount": 12,
+    "scenarioId": "stablecoin",
+    "severity": 0.8,
+    "liquidityFloor": 75,
+    "createdAt": "2026-09-05T18:37:57.072Z",
+    "revision": 3,
+    "risk": {
+      "intents": [
+        {
+          "id": "AI-1-1",
+          "entity": "台北營運",
+          "action": "PAY",
+          "destination": "PAYROLL-1",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": true,
+          "nonce": "AGENT-AI-1-1"
+        },
+        {
+          "id": "AI-1-2",
+          "entity": "台北營運",
+          "action": "PAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-1-2"
+        },
+        {
+          "id": "AI-1-3",
+          "entity": "台北營運",
+          "action": "DELAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-1-3"
+        },
+        {
+          "id": "AI-1-4",
+          "entity": "台北營運",
+          "action": "DELAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-1-4"
+        },
+        {
+          "id": "AI-2-1",
+          "entity": "新竹研發",
+          "action": "PAY",
+          "destination": "PAYROLL-2",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": true,
+          "nonce": "AGENT-AI-2-1"
+        },
+        {
+          "id": "AI-2-2",
+          "entity": "新竹研發",
+          "action": "PAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-2-2"
+        },
+        {
+          "id": "AI-2-3",
+          "entity": "新竹研發",
+          "action": "DELAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-2-3"
+        },
+        {
+          "id": "AI-2-4",
+          "entity": "新竹研發",
+          "action": "DELAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-2-4"
+        },
+        {
+          "id": "AI-3-1",
+          "entity": "台中供應鏈",
+          "action": "PAY",
+          "destination": "PAYROLL-3",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": true,
+          "nonce": "AGENT-AI-3-1"
+        },
+        {
+          "id": "AI-3-2",
+          "entity": "台中供應鏈",
+          "action": "PAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-3-2"
+        },
+        {
+          "id": "AI-3-3",
+          "entity": "台中供應鏈",
+          "action": "DELAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-3-3"
+        },
+        {
+          "id": "AI-3-4",
+          "entity": "台中供應鏈",
+          "action": "DELAY",
+          "destination": "SUPPLIER-HUB",
+          "amount": 900000,
+          "currency": "USD",
+          "individualPolicy": "PASS",
+          "status": "HELD",
+          "critical": false,
+          "nonce": "AGENT-AI-3-4"
+        }
+      ],
+      "directionalAgreement": 50,
+      "destinationConcentration": 75,
+      "proposedOutflow": 5400000,
+      "projectedBuffer": 83.125,
+      "liquidityFloor": 75,
+      "leadingAction": "PAY",
+      "leadingCount": 6,
+      "state": "REVIEW",
+      "reasonCode": "HB-CONC-001"
+    },
+    "commitments": {
+      "AI-1-1": "fd517c5ce1edf6d91dc50300ac670ecbf378511423f579f7e857af632872be2e",
+      "AI-1-2": "aecc9e0ff9638883174841ccb1d1e21e2571c7e18fd7344173c7be55a25f6829",
+      "AI-1-3": "8788fbb41a22a338c298c66dcf100f861ba2fb73e44706fd91eda144371c960c",
+      "AI-1-4": "ec1df696cd2be0c092fd8c883d09dea60250a7d9567434a01a78a1143ffa1270",
+      "AI-2-1": "92fc76338455be627fb61c3631353e7d44b99e9bba122438607c792d4b7ebb85",
+      "AI-2-2": "712fc32cda8c3e05b4b511a70779450efed32c29cce90ae46168b7905e133f1d",
+      "AI-2-3": "ee495ad2c61e4ce05d2c7ba16fe910b6d1260a907a3d419846c2616f29182c9a",
+      "AI-2-4": "9b9a4157b9c2af4fcb46a6a0c35e152d834343b1291724ad19d0167fd43a420d",
+      "AI-3-1": "acbfcbb2df40bd1b2a2136ef9939f50912d786a8d184abe42b70860c811855ff",
+      "AI-3-2": "82d5cf06e158b9c8ae19350bf9854d8a72b2417c60b7bfa45c40a766905b6192",
+      "AI-3-3": "1cb7f04f4c15be1bbb789105f78419b1654cff162f8c15f9a7d130c7f529ee89",
+      "AI-3-4": "96cfcaf349431135a07c5e0140bb9aa19e68d99fd44d2660fe1cc51c40c2b3e8"
+    },
+    "auditHead": "89b14cd2a1368e01228340ea02fda32de6fd6898eb1a4fdab8672145796ecda2",
+    "auditEvents": [
+      {
+        "id": "EVT-c71c8c09-880f-4a4d-9783-b3e5c4718325",
+        "eventType": "SCENARIO_RECEIVED",
+        "detail": {
+          "scenarioId": "stablecoin",
+          "ownerId": "local_seedy",
+          "name": "AI 付款協作 · 即時推論",
+          "policyRevision": 10,
+          "policy": {
+            "liquidityFloor": 75,
+            "openingLiquidity": 32000000,
+            "twdPerUsd": 32,
+            "usdcUsd": 1,
+            "herdThreshold": 70,
+            "concentrationThreshold": 50,
+            "maxIntentUsd": 1000000
+          },
+          "batchSource": "ai",
+          "aiTrace": {
+            "version": 1,
+            "mode": "live",
+            "provider": "ollama",
+            "scenario": "shared-deadline",
+            "recordedAt": "2026-09-05T18:37:57.063Z",
+            "sessions": [
+              {
+                "agent": "台北營運",
+                "prompt": "你是台北營運的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-1-1\",\"entity\":\"台北營運\",\"destination\":\"PAYROLL-1\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-1-2\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-1-3\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-1-4\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+                "decisions": [
+                  {
+                    "invoiceId": "AI-1-1",
+                    "action": "PAY",
+                    "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+                  },
+                  {
+                    "invoiceId": "AI-1-2",
+                    "action": "PAY",
+                    "reason": "支付兩筆供應商款項後剩餘預算不足，其餘延遲"
+                  },
+                  {
+                    "invoiceId": "AI-1-3",
+                    "action": "DELAY",
+                    "reason": "預算已用盡且非關鍵項目，延遲將產生違約金"
+                  },
+                  {
+                    "invoiceId": "AI-1-4",
+                    "action": "DELAY",
+                    "reason": "預算已用盡且非關鍵項目，延遲將產生違約金"
+                  }
+                ],
+                "response": "{\"decisions\":[{\"invoiceId\":\"AI-1-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-1-2\",\"action\":\"PAY\",\"reason\":\"支付兩筆供應商款項後剩餘預算不足，其餘延遲\"},{\"invoiceId\":\"AI-1-3\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"},{\"invoiceId\":\"AI-1-4\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"}]}",
+                "model": "qwen3.5:4b",
+                "completedAt": "2026-09-05T18:37:13.168Z",
+                "durationMs": 33781,
+                "inputTokens": 394,
+                "outputTokens": 129
+              },
+              {
+                "agent": "新竹研發",
+                "prompt": "你是新竹研發的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-2-1\",\"entity\":\"新竹研發\",\"destination\":\"PAYROLL-2\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-2-2\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-2-3\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-2-4\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+                "decisions": [
+                  {
+                    "invoiceId": "AI-2-1",
+                    "action": "PAY",
+                    "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+                  },
+                  {
+                    "invoiceId": "AI-2-2",
+                    "action": "PAY",
+                    "reason": "避免違約金並維持供應商關係，符合預算上限"
+                  },
+                  {
+                    "invoiceId": "AI-2-3",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  },
+                  {
+                    "invoiceId": "AI-2-4",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  }
+                ],
+                "response": "{\"decisions\":[{\"invoiceId\":\"AI-2-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-2-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-2-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-2-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}]}",
+                "model": "qwen3.5:4b",
+                "completedAt": "2026-09-05T18:37:36.618Z",
+                "durationMs": 23450,
+                "inputTokens": 394,
+                "outputTokens": 128
+              },
+              {
+                "agent": "台中供應鏈",
+                "prompt": "你是台中供應鏈的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-3-1\",\"entity\":\"台中供應鏈\",\"destination\":\"PAYROLL-3\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-3-2\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-3-3\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-3-4\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+                "decisions": [
+                  {
+                    "invoiceId": "AI-3-1",
+                    "action": "PAY",
+                    "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+                  },
+                  {
+                    "invoiceId": "AI-3-2",
+                    "action": "PAY",
+                    "reason": "避免違約金並維持供應商關係，符合預算上限"
+                  },
+                  {
+                    "invoiceId": "AI-3-3",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  },
+                  {
+                    "invoiceId": "AI-3-4",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  }
+                ],
+                "response": "{\"decisions\":[{\"invoiceId\":\"AI-3-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-3-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-3-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-3-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}]}",
+                "model": "qwen3.5:4b",
+                "completedAt": "2026-09-05T18:37:57.063Z",
+                "durationMs": 20445,
+                "inputTokens": 394,
+                "outputTokens": 128
+              }
+            ],
+            "contentHash": "5f552000b0df81d5b5c3f73d554093da5544510fd67ad59bbb291f3a28c69446"
+          },
+          "intentCount": 12,
+          "liquidityFloor": 75,
+          "source": "AI 代理付款提案"
+        },
+        "detailJson": "{\"scenarioId\":\"stablecoin\",\"ownerId\":\"local_seedy\",\"name\":\"AI 付款協作 · 即時推論\",\"policyRevision\":10,\"policy\":{\"liquidityFloor\":75,\"openingLiquidity\":32000000,\"twdPerUsd\":32,\"usdcUsd\":1,\"herdThreshold\":70,\"concentrationThreshold\":50,\"maxIntentUsd\":1000000},\"batchSource\":\"ai\",\"aiTrace\":{\"version\":1,\"mode\":\"live\",\"provider\":\"ollama\",\"scenario\":\"shared-deadline\",\"recordedAt\":\"2026-09-05T18:37:57.063Z\",\"sessions\":[{\"agent\":\"台北營運\",\"prompt\":\"你是台北營運的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\\n發票：[{\\\"id\\\":\\\"AI-1-1\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"PAYROLL-1\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":true,\\\"description\\\":\\\"本期薪資，今天到期\\\"},{\\\"id\\\":\\\"AI-1-2\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-1-3\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-1-4\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"}]\\n只回傳 JSON：{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"發票 ID\\\",\\\"action\\\":\\\"PAY 或 DELAY\\\",\\\"reason\\\":\\\"業務理由\\\"}]}。每張發票必須且只能出現一次。\",\"decisions\":[{\"invoiceId\":\"AI-1-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-1-2\",\"action\":\"PAY\",\"reason\":\"支付兩筆供應商款項後剩餘預算不足，其餘延遲\"},{\"invoiceId\":\"AI-1-3\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"},{\"invoiceId\":\"AI-1-4\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"}],\"response\":\"{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"AI-1-1\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"薪資為關鍵項目，優先支付以保障營運連續性\\\"},{\\\"invoiceId\\\":\\\"AI-1-2\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"支付兩筆供應商款項後剩餘預算不足，其餘延遲\\\"},{\\\"invoiceId\\\":\\\"AI-1-3\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"預算已用盡且非關鍵項目，延遲將產生違約金\\\"},{\\\"invoiceId\\\":\\\"AI-1-4\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"預算已用盡且非關鍵項目，延遲將產生違約金\\\"}]}\",\"model\":\"qwen3.5:4b\",\"completedAt\":\"2026-09-05T18:37:13.168Z\",\"durationMs\":33781,\"inputTokens\":394,\"outputTokens\":129},{\"agent\":\"新竹研發\",\"prompt\":\"你是新竹研發的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\\n發票：[{\\\"id\\\":\\\"AI-2-1\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"PAYROLL-2\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":true,\\\"description\\\":\\\"本期薪資，今天到期\\\"},{\\\"id\\\":\\\"AI-2-2\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-2-3\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-2-4\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"}]\\n只回傳 JSON：{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"發票 ID\\\",\\\"action\\\":\\\"PAY 或 DELAY\\\",\\\"reason\\\":\\\"業務理由\\\"}]}。每張發票必須且只能出現一次。\",\"decisions\":[{\"invoiceId\":\"AI-2-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-2-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-2-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-2-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}],\"response\":\"{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"AI-2-1\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"薪資為關鍵項目，優先支付以保障營運連續性\\\"},{\\\"invoiceId\\\":\\\"AI-2-2\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"避免違約金並維持供應商關係，符合預算上限\\\"},{\\\"invoiceId\\\":\\\"AI-2-3\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"},{\\\"invoiceId\\\":\\\"AI-2-4\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"}]}\",\"model\":\"qwen3.5:4b\",\"completedAt\":\"2026-09-05T18:37:36.618Z\",\"durationMs\":23450,\"inputTokens\":394,\"outputTokens\":128},{\"agent\":\"台中供應鏈\",\"prompt\":\"你是台中供應鏈的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\\n發票：[{\\\"id\\\":\\\"AI-3-1\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"PAYROLL-3\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":true,\\\"description\\\":\\\"本期薪資，今天到期\\\"},{\\\"id\\\":\\\"AI-3-2\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-3-3\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-3-4\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"}]\\n只回傳 JSON：{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"發票 ID\\\",\\\"action\\\":\\\"PAY 或 DELAY\\\",\\\"reason\\\":\\\"業務理由\\\"}]}。每張發票必須且只能出現一次。\",\"decisions\":[{\"invoiceId\":\"AI-3-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-3-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-3-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-3-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}],\"response\":\"{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"AI-3-1\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"薪資為關鍵項目，優先支付以保障營運連續性\\\"},{\\\"invoiceId\\\":\\\"AI-3-2\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"避免違約金並維持供應商關係，符合預算上限\\\"},{\\\"invoiceId\\\":\\\"AI-3-3\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"},{\\\"invoiceId\\\":\\\"AI-3-4\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"}]}\",\"model\":\"qwen3.5:4b\",\"completedAt\":\"2026-09-05T18:37:57.063Z\",\"durationMs\":20445,\"inputTokens\":394,\"outputTokens\":128}],\"contentHash\":\"5f552000b0df81d5b5c3f73d554093da5544510fd67ad59bbb291f3a28c69446\"},\"intentCount\":12,\"liquidityFloor\":75,\"source\":\"AI 代理付款提案\"}",
+        "previousHash": null,
+        "eventHash": "86b03db8c6e193703d359a20a5757364b5ffba17df6208904319ce561d3f24ff",
+        "createdAt": "2026-09-05T18:37:57.072Z"
+      },
+      {
+        "id": "EVT-4dc40342-c2c4-40d3-bd46-ebac26970fed",
+        "eventType": "INTENTS_EVALUATED",
+        "detail": {
+          "count": 12,
+          "individualPass": true,
+          "directionalAgreement": 50
+        },
+        "detailJson": "{\"count\":12,\"individualPass\":true,\"directionalAgreement\":50}",
+        "previousHash": "86b03db8c6e193703d359a20a5757364b5ffba17df6208904319ce561d3f24ff",
+        "eventHash": "713740b1c5764d4286d45afc99d05d46f3d37628d9040659afdd34c1c26b3c4d",
+        "createdAt": "2026-09-05T18:37:57.072Z"
+      },
+      {
+        "id": "EVT-f199a57f-b076-407f-88ef-11ec1a144f6d",
+        "eventType": "BATCH_REVIEWED",
+        "detail": {
+          "state": "REVIEW",
+          "reasonCode": "HB-CONC-001",
+          "projectedBuffer": 83.125,
+          "liquidityFloor": 75
+        },
+        "detailJson": "{\"state\":\"REVIEW\",\"reasonCode\":\"HB-CONC-001\",\"projectedBuffer\":83.125,\"liquidityFloor\":75}",
+        "previousHash": "713740b1c5764d4286d45afc99d05d46f3d37628d9040659afdd34c1c26b3c4d",
+        "eventHash": "89b14cd2a1368e01228340ea02fda32de6fd6898eb1a4fdab8672145796ecda2",
+        "createdAt": "2026-09-05T18:37:57.072Z"
+      }
+    ]
+  },
+  "audit": {
+    "chainValid": true,
+    "events": [
+      {
+        "id": "EVT-c71c8c09-880f-4a4d-9783-b3e5c4718325",
+        "eventType": "SCENARIO_RECEIVED",
+        "detail": {
+          "scenarioId": "stablecoin",
+          "ownerId": "local_seedy",
+          "name": "AI 付款協作 · 即時推論",
+          "policyRevision": 10,
+          "policy": {
+            "liquidityFloor": 75,
+            "openingLiquidity": 32000000,
+            "twdPerUsd": 32,
+            "usdcUsd": 1,
+            "herdThreshold": 70,
+            "concentrationThreshold": 50,
+            "maxIntentUsd": 1000000
+          },
+          "batchSource": "ai",
+          "aiTrace": {
+            "version": 1,
+            "mode": "live",
+            "provider": "ollama",
+            "scenario": "shared-deadline",
+            "recordedAt": "2026-09-05T18:37:57.063Z",
+            "sessions": [
+              {
+                "agent": "台北營運",
+                "prompt": "你是台北營運的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-1-1\",\"entity\":\"台北營運\",\"destination\":\"PAYROLL-1\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-1-2\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-1-3\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-1-4\",\"entity\":\"台北營運\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+                "decisions": [
+                  {
+                    "invoiceId": "AI-1-1",
+                    "action": "PAY",
+                    "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+                  },
+                  {
+                    "invoiceId": "AI-1-2",
+                    "action": "PAY",
+                    "reason": "支付兩筆供應商款項後剩餘預算不足，其餘延遲"
+                  },
+                  {
+                    "invoiceId": "AI-1-3",
+                    "action": "DELAY",
+                    "reason": "預算已用盡且非關鍵項目，延遲將產生違約金"
+                  },
+                  {
+                    "invoiceId": "AI-1-4",
+                    "action": "DELAY",
+                    "reason": "預算已用盡且非關鍵項目，延遲將產生違約金"
+                  }
+                ],
+                "response": "{\"decisions\":[{\"invoiceId\":\"AI-1-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-1-2\",\"action\":\"PAY\",\"reason\":\"支付兩筆供應商款項後剩餘預算不足，其餘延遲\"},{\"invoiceId\":\"AI-1-3\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"},{\"invoiceId\":\"AI-1-4\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"}]}",
+                "model": "qwen3.5:4b",
+                "completedAt": "2026-09-05T18:37:13.168Z",
+                "durationMs": 33781,
+                "inputTokens": 394,
+                "outputTokens": 129
+              },
+              {
+                "agent": "新竹研發",
+                "prompt": "你是新竹研發的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-2-1\",\"entity\":\"新竹研發\",\"destination\":\"PAYROLL-2\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-2-2\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-2-3\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-2-4\",\"entity\":\"新竹研發\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+                "decisions": [
+                  {
+                    "invoiceId": "AI-2-1",
+                    "action": "PAY",
+                    "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+                  },
+                  {
+                    "invoiceId": "AI-2-2",
+                    "action": "PAY",
+                    "reason": "避免違約金並維持供應商關係，符合預算上限"
+                  },
+                  {
+                    "invoiceId": "AI-2-3",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  },
+                  {
+                    "invoiceId": "AI-2-4",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  }
+                ],
+                "response": "{\"decisions\":[{\"invoiceId\":\"AI-2-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-2-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-2-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-2-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}]}",
+                "model": "qwen3.5:4b",
+                "completedAt": "2026-09-05T18:37:36.618Z",
+                "durationMs": 23450,
+                "inputTokens": 394,
+                "outputTokens": 128
+              },
+              {
+                "agent": "台中供應鏈",
+                "prompt": "你是台中供應鏈的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\n發票：[{\"id\":\"AI-3-1\",\"entity\":\"台中供應鏈\",\"destination\":\"PAYROLL-3\",\"amount\":900000,\"currency\":\"USD\",\"critical\":true,\"description\":\"本期薪資，今天到期\"},{\"id\":\"AI-3-2\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-3-3\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"},{\"id\":\"AI-3-4\",\"entity\":\"台中供應鏈\",\"destination\":\"SUPPLIER-HUB\",\"amount\":900000,\"currency\":\"USD\",\"critical\":false,\"description\":\"已驗收供應商發票，今天到期，延誤將產生違約金\"}]\n只回傳 JSON：{\"decisions\":[{\"invoiceId\":\"發票 ID\",\"action\":\"PAY 或 DELAY\",\"reason\":\"業務理由\"}]}。每張發票必須且只能出現一次。",
+                "decisions": [
+                  {
+                    "invoiceId": "AI-3-1",
+                    "action": "PAY",
+                    "reason": "薪資為關鍵項目，優先支付以保障營運連續性"
+                  },
+                  {
+                    "invoiceId": "AI-3-2",
+                    "action": "PAY",
+                    "reason": "避免違約金並維持供應商關係，符合預算上限"
+                  },
+                  {
+                    "invoiceId": "AI-3-3",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  },
+                  {
+                    "invoiceId": "AI-3-4",
+                    "action": "DELAY",
+                    "reason": "已支付兩筆且達單筆上限，剩餘金額不足支付此筆"
+                  }
+                ],
+                "response": "{\"decisions\":[{\"invoiceId\":\"AI-3-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-3-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-3-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-3-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}]}",
+                "model": "qwen3.5:4b",
+                "completedAt": "2026-09-05T18:37:57.063Z",
+                "durationMs": 20445,
+                "inputTokens": 394,
+                "outputTokens": 128
+              }
+            ],
+            "contentHash": "5f552000b0df81d5b5c3f73d554093da5544510fd67ad59bbb291f3a28c69446"
+          },
+          "intentCount": 12,
+          "liquidityFloor": 75,
+          "source": "AI 代理付款提案"
+        },
+        "detailJson": "{\"scenarioId\":\"stablecoin\",\"ownerId\":\"local_seedy\",\"name\":\"AI 付款協作 · 即時推論\",\"policyRevision\":10,\"policy\":{\"liquidityFloor\":75,\"openingLiquidity\":32000000,\"twdPerUsd\":32,\"usdcUsd\":1,\"herdThreshold\":70,\"concentrationThreshold\":50,\"maxIntentUsd\":1000000},\"batchSource\":\"ai\",\"aiTrace\":{\"version\":1,\"mode\":\"live\",\"provider\":\"ollama\",\"scenario\":\"shared-deadline\",\"recordedAt\":\"2026-09-05T18:37:57.063Z\",\"sessions\":[{\"agent\":\"台北營運\",\"prompt\":\"你是台北營運的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\\n發票：[{\\\"id\\\":\\\"AI-1-1\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"PAYROLL-1\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":true,\\\"description\\\":\\\"本期薪資，今天到期\\\"},{\\\"id\\\":\\\"AI-1-2\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-1-3\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-1-4\\\",\\\"entity\\\":\\\"台北營運\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"}]\\n只回傳 JSON：{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"發票 ID\\\",\\\"action\\\":\\\"PAY 或 DELAY\\\",\\\"reason\\\":\\\"業務理由\\\"}]}。每張發票必須且只能出現一次。\",\"decisions\":[{\"invoiceId\":\"AI-1-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-1-2\",\"action\":\"PAY\",\"reason\":\"支付兩筆供應商款項後剩餘預算不足，其餘延遲\"},{\"invoiceId\":\"AI-1-3\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"},{\"invoiceId\":\"AI-1-4\",\"action\":\"DELAY\",\"reason\":\"預算已用盡且非關鍵項目，延遲將產生違約金\"}],\"response\":\"{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"AI-1-1\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"薪資為關鍵項目，優先支付以保障營運連續性\\\"},{\\\"invoiceId\\\":\\\"AI-1-2\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"支付兩筆供應商款項後剩餘預算不足，其餘延遲\\\"},{\\\"invoiceId\\\":\\\"AI-1-3\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"預算已用盡且非關鍵項目，延遲將產生違約金\\\"},{\\\"invoiceId\\\":\\\"AI-1-4\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"預算已用盡且非關鍵項目，延遲將產生違約金\\\"}]}\",\"model\":\"qwen3.5:4b\",\"completedAt\":\"2026-09-05T18:37:13.168Z\",\"durationMs\":33781,\"inputTokens\":394,\"outputTokens\":129},{\"agent\":\"新竹研發\",\"prompt\":\"你是新竹研發的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\\n發票：[{\\\"id\\\":\\\"AI-2-1\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"PAYROLL-2\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":true,\\\"description\\\":\\\"本期薪資，今天到期\\\"},{\\\"id\\\":\\\"AI-2-2\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-2-3\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-2-4\\\",\\\"entity\\\":\\\"新竹研發\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"}]\\n只回傳 JSON：{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"發票 ID\\\",\\\"action\\\":\\\"PAY 或 DELAY\\\",\\\"reason\\\":\\\"業務理由\\\"}]}。每張發票必須且只能出現一次。\",\"decisions\":[{\"invoiceId\":\"AI-2-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-2-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-2-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-2-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}],\"response\":\"{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"AI-2-1\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"薪資為關鍵項目，優先支付以保障營運連續性\\\"},{\\\"invoiceId\\\":\\\"AI-2-2\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"避免違約金並維持供應商關係，符合預算上限\\\"},{\\\"invoiceId\\\":\\\"AI-2-3\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"},{\\\"invoiceId\\\":\\\"AI-2-4\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"}]}\",\"model\":\"qwen3.5:4b\",\"completedAt\":\"2026-09-05T18:37:36.618Z\",\"durationMs\":23450,\"inputTokens\":394,\"outputTokens\":128},{\"agent\":\"台中供應鏈\",\"prompt\":\"你是台中供應鏈的財務 AI 代理。以下都是合成資料。今天所有部門收到同一個付款截止訊號。你只能看見本部門資料，不能假設看見其他部門。\\n本部門今天可用預算為 4,000,000 USD，單筆上限 1,000,000 USD。請在不超過本部門預算的前提下，決定每張發票今天 PAY 或 DELAY，考慮到期日、營運連續性和延遲成本。你無權實際付款。理由用一句繁體中文，不超過 80 字。\\n發票：[{\\\"id\\\":\\\"AI-3-1\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"PAYROLL-3\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":true,\\\"description\\\":\\\"本期薪資，今天到期\\\"},{\\\"id\\\":\\\"AI-3-2\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-3-3\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"},{\\\"id\\\":\\\"AI-3-4\\\",\\\"entity\\\":\\\"台中供應鏈\\\",\\\"destination\\\":\\\"SUPPLIER-HUB\\\",\\\"amount\\\":900000,\\\"currency\\\":\\\"USD\\\",\\\"critical\\\":false,\\\"description\\\":\\\"已驗收供應商發票，今天到期，延誤將產生違約金\\\"}]\\n只回傳 JSON：{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"發票 ID\\\",\\\"action\\\":\\\"PAY 或 DELAY\\\",\\\"reason\\\":\\\"業務理由\\\"}]}。每張發票必須且只能出現一次。\",\"decisions\":[{\"invoiceId\":\"AI-3-1\",\"action\":\"PAY\",\"reason\":\"薪資為關鍵項目，優先支付以保障營運連續性\"},{\"invoiceId\":\"AI-3-2\",\"action\":\"PAY\",\"reason\":\"避免違約金並維持供應商關係，符合預算上限\"},{\"invoiceId\":\"AI-3-3\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"},{\"invoiceId\":\"AI-3-4\",\"action\":\"DELAY\",\"reason\":\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\"}],\"response\":\"{\\\"decisions\\\":[{\\\"invoiceId\\\":\\\"AI-3-1\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"薪資為關鍵項目，優先支付以保障營運連續性\\\"},{\\\"invoiceId\\\":\\\"AI-3-2\\\",\\\"action\\\":\\\"PAY\\\",\\\"reason\\\":\\\"避免違約金並維持供應商關係，符合預算上限\\\"},{\\\"invoiceId\\\":\\\"AI-3-3\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"},{\\\"invoiceId\\\":\\\"AI-3-4\\\",\\\"action\\\":\\\"DELAY\\\",\\\"reason\\\":\\\"已支付兩筆且達單筆上限，剩餘金額不足支付此筆\\\"}]}\",\"model\":\"qwen3.5:4b\",\"completedAt\":\"2026-09-05T18:37:57.063Z\",\"durationMs\":20445,\"inputTokens\":394,\"outputTokens\":128}],\"contentHash\":\"5f552000b0df81d5b5c3f73d554093da5544510fd67ad59bbb291f3a28c69446\"},\"intentCount\":12,\"liquidityFloor\":75,\"source\":\"AI 代理付款提案\"}",
+        "previousHash": null,
+        "eventHash": "86b03db8c6e193703d359a20a5757364b5ffba17df6208904319ce561d3f24ff",
+        "createdAt": "2026-09-05T18:37:57.072Z"
+      },
+      {
+        "id": "EVT-4dc40342-c2c4-40d3-bd46-ebac26970fed",
+        "eventType": "INTENTS_EVALUATED",
+        "detail": {
+          "count": 12,
+          "individualPass": true,
+          "directionalAgreement": 50
+        },
+        "detailJson": "{\"count\":12,\"individualPass\":true,\"directionalAgreement\":50}",
+        "previousHash": "86b03db8c6e193703d359a20a5757364b5ffba17df6208904319ce561d3f24ff",
+        "eventHash": "713740b1c5764d4286d45afc99d05d46f3d37628d9040659afdd34c1c26b3c4d",
+        "createdAt": "2026-09-05T18:37:57.072Z"
+      },
+      {
+        "id": "EVT-f199a57f-b076-407f-88ef-11ec1a144f6d",
+        "eventType": "BATCH_REVIEWED",
+        "detail": {
+          "state": "REVIEW",
+          "reasonCode": "HB-CONC-001",
+          "projectedBuffer": 83.125,
+          "liquidityFloor": 75
+        },
+        "detailJson": "{\"state\":\"REVIEW\",\"reasonCode\":\"HB-CONC-001\",\"projectedBuffer\":83.125,\"liquidityFloor\":75}",
+        "previousHash": "713740b1c5764d4286d45afc99d05d46f3d37628d9040659afdd34c1c26b3c4d",
+        "eventHash": "89b14cd2a1368e01228340ea02fda32de6fd6898eb1a4fdab8672145796ecda2",
+        "createdAt": "2026-09-05T18:37:57.072Z"
+      }
+    ]
+  },
+  "commitmentsValid": true,
+  "policyValid": true,
+  "releaseStateValid": true,
+  "releasePolicyValid": true,
+  "releasePosition": {
+    "openingCents": 3200000000,
+    "budgetCents": 800000000,
+    "approvedCents": 0,
+    "approvedOutflow": 0,
+    "remainingBudget": 8000000,
+    "retainedBuffer": 100,
+    "withinFloor": true
+  },
+  "controls": {
+    "custody": false,
+    "autonomousSigning": false,
+    "deterministicBreaker": true,
+    "humanAuthorizationRequired": true
+  },
+  "evidenceHash": "3ea5fa5684cab37eb3756acaf7ed22a0b5ae5bbd1eab4bb58412e791a23bedfa"
+}
