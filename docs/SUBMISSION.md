@@ -25,7 +25,7 @@
 
 兩分鐘以內，內容涵蓋問題、實際模型、聚合風險、人工核准、後端拒絕與稽核證據。完整操作與數字見 [DEMO.md](DEMO.md)。MP4 與繁體字幕備份已於 [v0.2.0 Release](https://github.com/nrps9909/herdbrake/releases/tag/v0.2.0) 公開；GitHub 影片檔不能代替官方必填的 YouTube 連結。影片記錄 55 個測試的 v0.2.0；後續離線驗證修補增加六個測試，主流程與影片數字不變。
 
-完整核對結果、未完成的外部事項與評分評估見 [最後提交驗收](FINAL-AUDIT-2026-09-06.md)。三分鐘現場操作順序與回答準備見 [JUDGES.md](JUDGES.md)。
+完整核對結果、未完成的外部事項見 [最後提交驗收](FINAL-AUDIT-2026-09-06.md)。三分鐘現場操作順序與回答準備見 [JUDGES.md](JUDGES.md)。
 
 ## 公開揭露
 
