@@ -34,7 +34,7 @@ const localBindingConfig = {
     : [],
 };
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ command }) => {
   // Keep Wrangler and Miniflare state project-local. These are non-secret tool
   // settings; application environment belongs in ignored `.env*` files.
   process.env.WRANGLER_WRITE_LOGS ??= 'false';
@@ -45,6 +45,18 @@ export default defineConfig(async () => {
   const { cloudflare } = await import('@cloudflare/vite-plugin');
 
   return {
+    // Discover shared client dependencies before the first navigation. Late
+    // re-optimization can otherwise give the renderer and dialogs different
+    // React chunk versions during a cold development startup.
+    optimizeDeps: {
+      include: [
+        'next/link',
+        '@base-ui/react/dialog',
+        '@base-ui/react/button',
+        '@base-ui/react/input',
+        'lucide-react',
+      ],
+    },
     css: { postcss: { plugins: [tailwindcss()] } },
     server: isCodexSeatbeltSandbox
       ? { watch: { useFsEvents: false, usePolling: true } }
@@ -54,7 +66,19 @@ export default defineConfig(async () => {
       sites(),
       cloudflare({
         viteEnvironment: { name: 'rsc', childEnvironments: ['ssr'] },
-        config: localBindingConfig,
+        config: {
+          ...localBindingConfig,
+          // Local development talks to the user's loopback model service.
+          // Production has no localhost provider unless explicitly configured.
+          vars:
+            command === 'serve'
+              ? {
+                  OLLAMA_BASE_URL:
+                    process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434',
+                  OLLAMA_MODEL: process.env.OLLAMA_MODEL || 'qwen3.5:4b',
+                }
+              : {},
+        },
       }),
     ],
   };

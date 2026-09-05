@@ -1,0 +1,224 @@
+[
+  {
+    "name": "@base-ui/react",
+    "version": "1.7.0",
+    "license": "MIT",
+    "repository": "git+https://github.com/mui/base-ui.git"
+  },
+  {
+    "name": "@cloudflare/vite-plugin",
+    "version": "1.54.4",
+    "license": "MIT",
+    "repository": "https://github.com/cloudflare/workers-sdk.git"
+  },
+  {
+    "name": "@cloudflare/workers-types",
+    "version": "5.20260903.1",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/cloudflare/workerd"
+  },
+  {
+    "name": "@openai/sites-vite-plugin",
+    "version": "0.2.0",
+    "license": "MIT",
+    "repository": "git+https://github.com/openai/sites.git"
+  },
+  {
+    "name": "@shadcn/react",
+    "version": "0.3.0",
+    "license": "MIT",
+    "repository": "https://github.com/shadcn-ui/ui.git"
+  },
+  {
+    "name": "@tailwindcss/postcss",
+    "version": "4.2.1",
+    "license": "MIT",
+    "repository": "https://github.com/tailwindlabs/tailwindcss.git"
+  },
+  {
+    "name": "@types/node",
+    "version": "22.19.19",
+    "license": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  {
+    "name": "@types/react",
+    "version": "19.2.14",
+    "license": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  {
+    "name": "@types/react-dom",
+    "version": "19.2.3",
+    "license": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+  },
+  {
+    "name": "@vitejs/plugin-react",
+    "version": "6.0.2",
+    "license": "MIT",
+    "repository": "git+https://github.com/vitejs/vite-plugin-react.git"
+  },
+  {
+    "name": "@vitejs/plugin-rsc",
+    "version": "0.5.34",
+    "license": "MIT",
+    "repository": "git+https://github.com/vitejs/vite-plugin-react.git"
+  },
+  {
+    "name": "class-variance-authority",
+    "version": "0.7.1",
+    "license": "Apache-2.0",
+    "repository": "https://github.com/joe-bell/cva.git"
+  },
+  {
+    "name": "clsx",
+    "version": "2.1.1",
+    "license": "MIT",
+    "repository": "lukeed/clsx"
+  },
+  {
+    "name": "cmdk",
+    "version": "1.1.1",
+    "license": "MIT",
+    "repository": "git+https://github.com/pacocoursey/cmdk.git"
+  },
+  {
+    "name": "date-fns",
+    "version": "4.1.0",
+    "license": "MIT",
+    "repository": "https://github.com/date-fns/date-fns"
+  },
+  {
+    "name": "drizzle-kit",
+    "version": "0.31.10",
+    "license": "MIT",
+    "repository": "git+https://github.com/drizzle-team/drizzle-orm.git"
+  },
+  {
+    "name": "drizzle-orm",
+    "version": "0.45.2",
+    "license": "Apache-2.0",
+    "repository": "git+https://github.com/drizzle-team/drizzle-orm.git"
+  },
+  {
+    "name": "embla-carousel-react",
+    "version": "8.5.2",
+    "license": "MIT",
+    "repository": "git+https://github.com/davidjerleke/embla-carousel"
+  },
+  {
+    "name": "input-otp",
+    "version": "1.4.2",
+    "license": "MIT",
+    "repository": "git+https://github.com/guilhermerodz/input-otp.git"
+  },
+  {
+    "name": "lucide-react",
+    "version": "1.31.0",
+    "license": "ISC",
+    "repository": "https://github.com/lucide-icons/lucide.git"
+  },
+  {
+    "name": "oxfmt",
+    "version": "0.61.0",
+    "license": "MIT",
+    "repository": "git+https://github.com/oxc-project/oxc"
+  },
+  {
+    "name": "oxlint",
+    "version": "1.76.0",
+    "license": "MIT",
+    "repository": "git+https://github.com/oxc-project/oxc"
+  },
+  {
+    "name": "oxlint-tsgolint",
+    "version": "7.0.2001",
+    "license": "MIT",
+    "repository": "github:oxc-project/tsgolint"
+  },
+  {
+    "name": "react",
+    "version": "19.2.8",
+    "license": "MIT",
+    "repository": "https://github.com/react/react.git"
+  },
+  {
+    "name": "react-day-picker",
+    "version": "9.8.1",
+    "license": "MIT",
+    "repository": "https://github.com/gpbl/react-day-picker"
+  },
+  {
+    "name": "react-dom",
+    "version": "19.2.8",
+    "license": "MIT",
+    "repository": "https://github.com/react/react.git"
+  },
+  {
+    "name": "react-resizable-panels",
+    "version": "4.5.8",
+    "license": "MIT",
+    "repository": "https://github.com/bvaughn/react-resizable-panels.git"
+  },
+  {
+    "name": "react-server-dom-webpack",
+    "version": "19.2.8",
+    "license": "MIT",
+    "repository": "https://github.com/react/react.git"
+  },
+  {
+    "name": "recharts",
+    "version": "3.8.0",
+    "license": "MIT",
+    "repository": "git+https://github.com/recharts/recharts.git"
+  },
+  {
+    "name": "shadcn",
+    "version": "4.18.0",
+    "license": "MIT",
+    "repository": "https://github.com/shadcn-ui/ui.git"
+  },
+  {
+    "name": "tailwind-merge",
+    "version": "3.6.0",
+    "license": "MIT",
+    "repository": "https://github.com/dcastil/tailwind-merge.git"
+  },
+  {
+    "name": "tailwindcss",
+    "version": "4.2.1",
+    "license": "MIT",
+    "repository": "https://github.com/tailwindlabs/tailwindcss.git"
+  },
+  {
+    "name": "tw-animate-css",
+    "version": "1.4.0",
+    "license": "MIT",
+    "repository": "Wombosvideo/tw-animate-css"
+  },
+  {
+    "name": "typescript",
+    "version": "5.9.3",
+    "license": "Apache-2.0",
+    "repository": "https://github.com/microsoft/TypeScript.git"
+  },
+  {
+    "name": "vinext",
+    "version": "1.0.0-beta.9",
+    "license": "MIT",
+    "repository": "git+https://github.com/cloudflare/vinext.git"
+  },
+  {
+    "name": "vite",
+    "version": "8.2.2",
+    "license": "MIT",
+    "repository": "git+https://github.com/vitejs/vite.git"
+  },
+  {
+    "name": "wrangler",
+    "version": "4.129.0",
+    "license": "MIT OR Apache-2.0",
+    "repository": "https://github.com/cloudflare/workers-sdk.git"
+  }
+]

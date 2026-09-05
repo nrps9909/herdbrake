@@ -1,8 +1,15 @@
-import { InputError, NotFoundError, runReplayProbe } from '@/lib/server/assurance-store';
-
+import { assuranceStore } from '@/lib/server/assurance-store';
+import { requireApiUser } from '@/lib/server/access';
+import { NotFoundError } from '@/lib/errors';
+import { apiHandler, json } from '@/lib/server/http';
+import type { RunContext } from '@/lib/server/http';
 export const dynamic = 'force-dynamic';
-
-export async function POST(_request: Request, context: { params: Promise<{ id: string }> }) {
-  try { const { id } = await context.params; return Response.json(await runReplayProbe(id), { headers: { 'cache-control': 'no-store' } }); }
-  catch (error) { const status = error instanceof NotFoundError ? 404 : error instanceof InputError ? 400 : 500; return Response.json({ error: error instanceof NotFoundError || error instanceof InputError ? error.message : 'Unable to run replay probe.', code: status === 404 ? 'HB_NOT_FOUND' : status === 400 ? 'HB_INVALID_INPUT' : 'HB_INTERNAL' }, { status }); }
+export function POST(request: Request, context: RunContext) {
+  return apiHandler(async () => {
+    const user = await requireApiUser(request);
+    const { id } = await context.params;
+    const result = await assuranceStore(user.userId).runReplayProbe(id);
+    if (!result) throw new NotFoundError();
+    return json(result);
+  }, 'Unable to run replay probe.');
 }

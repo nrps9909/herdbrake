@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-09-05T18:27:25.794Z",
+  "runId": "RUN-423fc19a-31b5-472a-8cef-5abd08b4870d",
+  "status": 422,
+  "rejection": {
+    "error": "累計核准金額將突破流動性底線，請減少本次筆數。",
+    "code": "HB_LIQUIDITY_FLOOR",
+    "requestId": "28872094-b6ff-4235-9aed-b5dc6e18ae40"
+  },
+  "approvedIds": [
+    "AI-1-1",
+    "AI-2-1",
+    "AI-3-1"
+  ],
+  "unchangedAuditHead": true,
+  "unchangedRun": true,
+  "evidenceChecks": {
+    "auditChain": true,
+    "commitments": true,
+    "releaseState": true,
+    "policy": true,
+    "releasePolicy": true
+  }
+}

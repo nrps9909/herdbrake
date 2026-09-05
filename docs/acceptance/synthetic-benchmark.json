@@ -1,0 +1,621 @@
+{
+  "method": "Deterministic synthetic engine; six scenarios × ten severity levels; sequential one-intent approvals in priority order until the next approval is refused.",
+  "limits": "Not an LLM evaluation, prediction accuracy, customer outcome or causal evidence of herding. The guard is batch-scoped and uses fixed policy exchange rates. It does not optimize a global payment schedule.",
+  "policy": {
+    "liquidityFloor": 75,
+    "openingLiquidity": 32000000,
+    "twdPerUsd": 32,
+    "usdcUsd": 1,
+    "herdThreshold": 70,
+    "concentrationThreshold": 50,
+    "maxIntentUsd": 1000000
+  },
+  "summary": {
+    "cases": 60,
+    "intents": 1800,
+    "originalFloorBreaches": 4,
+    "guardedFloorBreaches": 0
+  },
+  "cases": [
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.1,
+      "state": "NORMAL",
+      "originalBuffer": 80.171875,
+      "guardedBuffer": 80.171875,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.2,
+      "state": "REVIEW",
+      "originalBuffer": 79.265625,
+      "guardedBuffer": 79.265625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.3,
+      "state": "REVIEW",
+      "originalBuffer": 78.015625,
+      "guardedBuffer": 78.015625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.4,
+      "state": "REVIEW",
+      "originalBuffer": 78.015625,
+      "guardedBuffer": 78.015625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.5,
+      "state": "REVIEW",
+      "originalBuffer": 75.90625,
+      "guardedBuffer": 75.90625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.6,
+      "state": "REVIEW",
+      "originalBuffer": 75.25,
+      "guardedBuffer": 75.25,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.7,
+      "state": "CRITICAL",
+      "originalBuffer": 73.796875,
+      "guardedBuffer": 75.25,
+      "approvedCount": 29,
+      "heldCount": 1,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.8,
+      "state": "CRITICAL",
+      "originalBuffer": 73.796875,
+      "guardedBuffer": 75.25,
+      "approvedCount": 29,
+      "heldCount": 1,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 0.9,
+      "state": "CRITICAL",
+      "originalBuffer": 71.765625,
+      "guardedBuffer": 76.03125,
+      "approvedCount": 27,
+      "heldCount": 3,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "stablecoin",
+      "severity": 1,
+      "state": "CRITICAL",
+      "originalBuffer": 71.125,
+      "guardedBuffer": 75.390625,
+      "approvedCount": 27,
+      "heldCount": 3,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.1,
+      "state": "CRITICAL",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.2,
+      "state": "CRITICAL",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.3,
+      "state": "CRITICAL",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.4,
+      "state": "CRITICAL",
+      "originalBuffer": 96.84375,
+      "guardedBuffer": 96.84375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.5,
+      "state": "CRITICAL",
+      "originalBuffer": 96.84375,
+      "guardedBuffer": 96.84375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.6,
+      "state": "CRITICAL",
+      "originalBuffer": 97.953125,
+      "guardedBuffer": 97.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.7,
+      "state": "CRITICAL",
+      "originalBuffer": 97.953125,
+      "guardedBuffer": 97.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.8,
+      "state": "CRITICAL",
+      "originalBuffer": 98.65625,
+      "guardedBuffer": 98.65625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 0.9,
+      "state": "CRITICAL",
+      "originalBuffer": 98.65625,
+      "guardedBuffer": 98.65625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "fx",
+      "severity": 1,
+      "state": "CRITICAL",
+      "originalBuffer": 100,
+      "guardedBuffer": 100,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.1,
+      "state": "REVIEW",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.2,
+      "state": "REVIEW",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.3,
+      "state": "REVIEW",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.4,
+      "state": "CRITICAL",
+      "originalBuffer": 96.84375,
+      "guardedBuffer": 96.84375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.5,
+      "state": "CRITICAL",
+      "originalBuffer": 96.84375,
+      "guardedBuffer": 96.84375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.6,
+      "state": "CRITICAL",
+      "originalBuffer": 97.953125,
+      "guardedBuffer": 97.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.7,
+      "state": "CRITICAL",
+      "originalBuffer": 97.953125,
+      "guardedBuffer": 97.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.8,
+      "state": "CRITICAL",
+      "originalBuffer": 98.65625,
+      "guardedBuffer": 98.65625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 0.9,
+      "state": "CRITICAL",
+      "originalBuffer": 98.65625,
+      "guardedBuffer": 98.65625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "settlement",
+      "severity": 1,
+      "state": "CRITICAL",
+      "originalBuffer": 100,
+      "guardedBuffer": 100,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.1,
+      "state": "NORMAL",
+      "originalBuffer": 82.09375,
+      "guardedBuffer": 82.09375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.2,
+      "state": "REVIEW",
+      "originalBuffer": 81.296875,
+      "guardedBuffer": 81.296875,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.3,
+      "state": "REVIEW",
+      "originalBuffer": 80.171875,
+      "guardedBuffer": 80.171875,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.4,
+      "state": "REVIEW",
+      "originalBuffer": 80,
+      "guardedBuffer": 80,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.5,
+      "state": "REVIEW",
+      "originalBuffer": 78.015625,
+      "guardedBuffer": 78.015625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.6,
+      "state": "REVIEW",
+      "originalBuffer": 77.859375,
+      "guardedBuffer": 77.859375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.7,
+      "state": "CRITICAL",
+      "originalBuffer": 77.015625,
+      "guardedBuffer": 77.015625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.8,
+      "state": "CRITICAL",
+      "originalBuffer": 76.609375,
+      "guardedBuffer": 76.609375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 0.9,
+      "state": "CRITICAL",
+      "originalBuffer": 75.953125,
+      "guardedBuffer": 75.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "supplier",
+      "severity": 1,
+      "state": "CRITICAL",
+      "originalBuffer": 75.140625,
+      "guardedBuffer": 75.140625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.1,
+      "state": "REVIEW",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.2,
+      "state": "REVIEW",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.3,
+      "state": "REVIEW",
+      "originalBuffer": 96.109375,
+      "guardedBuffer": 96.109375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.4,
+      "state": "CRITICAL",
+      "originalBuffer": 96.84375,
+      "guardedBuffer": 96.84375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.5,
+      "state": "CRITICAL",
+      "originalBuffer": 96.84375,
+      "guardedBuffer": 96.84375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.6,
+      "state": "CRITICAL",
+      "originalBuffer": 97.953125,
+      "guardedBuffer": 97.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.7,
+      "state": "CRITICAL",
+      "originalBuffer": 97.953125,
+      "guardedBuffer": 97.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.8,
+      "state": "CRITICAL",
+      "originalBuffer": 98.65625,
+      "guardedBuffer": 98.65625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 0.9,
+      "state": "CRITICAL",
+      "originalBuffer": 98.65625,
+      "guardedBuffer": 98.65625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "receivables",
+      "severity": 1,
+      "state": "CRITICAL",
+      "originalBuffer": 100,
+      "guardedBuffer": 100,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.1,
+      "state": "NORMAL",
+      "originalBuffer": 82.09375,
+      "guardedBuffer": 82.09375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.2,
+      "state": "REVIEW",
+      "originalBuffer": 81.296875,
+      "guardedBuffer": 81.296875,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.3,
+      "state": "REVIEW",
+      "originalBuffer": 80.171875,
+      "guardedBuffer": 80.171875,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.4,
+      "state": "REVIEW",
+      "originalBuffer": 80,
+      "guardedBuffer": 80,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.5,
+      "state": "REVIEW",
+      "originalBuffer": 78.015625,
+      "guardedBuffer": 78.015625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.6,
+      "state": "REVIEW",
+      "originalBuffer": 77.859375,
+      "guardedBuffer": 77.859375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.7,
+      "state": "CRITICAL",
+      "originalBuffer": 77.015625,
+      "guardedBuffer": 77.015625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.8,
+      "state": "CRITICAL",
+      "originalBuffer": 76.609375,
+      "guardedBuffer": 76.609375,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 0.9,
+      "state": "CRITICAL",
+      "originalBuffer": 75.953125,
+      "guardedBuffer": 75.953125,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    },
+    {
+      "scenarioId": "shared-feed",
+      "severity": 1,
+      "state": "CRITICAL",
+      "originalBuffer": 75.140625,
+      "guardedBuffer": 75.140625,
+      "approvedCount": 30,
+      "heldCount": 0,
+      "guardPassed": true
+    }
+  ]
+}

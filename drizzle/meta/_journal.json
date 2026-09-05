@@ -8,6 +8,20 @@
       "when": 1788515587735,
       "tag": "0000_lyrical_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788559515417,
+      "tag": "0001_calm_albert_cleary",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788586309123,
+      "tag": "0002_fast_santa_claus",
+      "breakpoints": true
     }
   ]
 }
